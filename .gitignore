@@ -6,3 +6,4 @@ Meta
 *.so
 *.dll
 .Rhistory
+*.Rhistory
