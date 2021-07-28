@@ -5,4 +5,4 @@ Meta
 *.o
 *.so
 *.dll
-*.Rhistory
+.Rhistory
