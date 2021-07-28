@@ -18,3 +18,5 @@ Suggests:
     rmarkdown,
     microbenchmark
 VignetteBuilder: knitr
+URL: http://github.com/DISOhda/PoissonBinomial
+BugReports: http://github.com/DISOhda/PoissonBinomial/issues
