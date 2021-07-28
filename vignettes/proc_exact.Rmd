@@ -1,0 +1,227 @@
+---
+title: "Exact Procedures"
+output: 
+  rmarkdown::html_vignette:
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Exact Procedures}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(PoissonBinomial)
+```
+
+## Ordinary Poisson Binomial Distribution
+
+### Direct Convolution
+
+The *Direct Convolution* (DC) approach is requested with `method = "Convolve"`.
+
+```{r directconv-ord}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+
+dpbinom(NULL, pp, wt, "Convolve")
+ppbinom(NULL, pp, wt, "Convolve")
+```
+
+### Divide & Conquer FFT Tree Convolution
+
+The *Divide & Conquer FFT Tree Convolution* (DC-FFT) approach is requested with `method = "DivideFFT"`.
+
+```{r divide1-ord}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+
+dpbinom(NULL, pp, wt, "DivideFFT")
+ppbinom(NULL, pp, wt, "DivideFFT")
+```
+
+By design, as proposed by [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007), its results are identical to the DC procedure, if $n \leq 750$. Thus, differences can be observed for larger $n > 750$:
+
+```{r divide2-ord}
+set.seed(1)
+pp1 <- runif(751)
+pp2 <- pp1[1:750]
+
+sum(abs(dpbinom(NULL, pp2, method = "DivideFFT") - dpbinom(NULL, pp2, method = "Convolve")))
+sum(abs(dpbinom(NULL, pp1, method = "DivideFFT") - dpbinom(NULL, pp1, method = "Convolve")))
+```
+
+The reason is that the DC-FFT method splits the input `probs` vector into as equally sized parts as possible and computes their distributions separately with the DC approach. The results of the portions are then convoluted by means of the Fast Fourier Transformation. As proposed by [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007), no splitting is done for $n \leq 750$. In addition, the DC-FFT procedure does not produce probabilities $\leq 5.55e\text{-}17$, i.e. smaller values are rounded off to 0, if $n > 750$, whereas the smallest possible result of the DC algorithm is $\sim 1e\text{-}323$. This is most likely caused by the used FFTW3 library.
+
+```{r divide3-ord}
+set.seed(1)
+pp1 <- runif(751)
+
+d1 <- dpbinom(NULL, pp1, method = "DivideFFT")
+d2 <- dpbinom(NULL, pp1, method = "Convolve")
+
+min(d1[d1 > 0])
+min(d2[d2 > 0])
+```
+
+### Discrete Fourier Transformation of the Characteristic Function
+
+The *Discrete Fourier Transformation of the Characteristic Function* (DFT-CF) approach is requested with `method = "Characteristic"`.
+
+```{r dftcf-ord}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+
+dpbinom(NULL, pp, wt, "Characteristic")
+ppbinom(NULL, pp, wt, "Characteristic")
+```
+
+As can be seen, the DFT-CF procedure does not produce probabilities $\leq 2.22e\text{-}16$, i.e. smaller values are rounded off to 0, most likely due to the used FFTW3 library.
+
+### Recursive Formula
+
+The *Recursive Formula* (RF) approach is requested with `method = "Recursive"`.
+
+```{r rf1-ord}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+
+dpbinom(NULL, pp, wt, "Recursive")
+ppbinom(NULL, pp, wt, "Recursive")
+```
+
+Obviously, the RF procedure does produce probabilities $\leq 5.55e\text{-}17$, because it does not rely on the FFTW3 library. Furthermore, it yields the same results as the DC method.
+
+```{r rf2-ord}
+set.seed(1)
+pp <- runif(1000)
+wt <- sample(1:10, 1000, TRUE)
+
+sum(abs(dpbinom(NULL, pp, wt, "Convolve") - dpbinom(NULL, pp, wt, "Recursive")))
+```
+
+### Processing Speed Comparisons
+
+To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 7 1800X with 32 GiB of RAM and Windows 10 Education (20H2).
+
+```{r benchmark-ord}
+library(microbenchmark)
+set.seed(1)
+
+f1 <- function() dpbinom(NULL, runif(6000), method = "DivideFFT")
+f2 <- function() dpbinom(NULL, runif(6000), method = "Convolve")
+f3 <- function() dpbinom(NULL, runif(6000), method = "Recursive")
+f4 <- function() dpbinom(NULL, runif(6000), method = "Characteristic")
+
+microbenchmark(f1(), f2(), f3(), f4(), times = 51)
+```
+
+Clearly, the DC-FFT procedure is the fastest, followed by DC, RF and DFT-CF methods.
+
+
+## Generalized Poisson Binomial Distribution
+
+### Generalized Direct Convolution
+
+The *Generalized Direct Convolution* (G-DC) approach is requested with `method = "Convolve"`.
+
+```{r directconv-gen}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+va <- sample(0:10, 10, TRUE)
+vb <- sample(0:10, 10, TRUE)
+
+dgpbinom(NULL, pp, va, vb, wt, "Convolve")
+pgpbinom(NULL, pp, va, vb, wt, "Convolve")
+```
+
+### Generalized Divide & Conquer FFT Tree Convolution
+
+The *Generalized Divide & Conquer FFT Tree Convolution* (G-DC-FFT) approach is requested with `method = "DivideFFT"`.
+
+```{r divide1-gen}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+va <- sample(0:10, 10, TRUE)
+vb <- sample(0:10, 10, TRUE)
+
+dgpbinom(NULL, pp, va, vb, wt, "DivideFFT")
+pgpbinom(NULL, pp, va, vb, wt, "DivideFFT")
+```
+
+By design, similar to the ordinary DC-FFT algorithm by [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007), its results are identical to the G-DC procedure, if $n$ and the number of possible observed values is small. Thus, differences can be observed for larger numbers:
+
+```{r divide2-gen}
+set.seed(1)
+pp1 <- runif(250)
+va1 <- sample(0:50, 250, TRUE)
+vb1 <- sample(0:50, 250, TRUE)
+pp2 <- pp1[1:248]
+va2 <- va1[1:248]
+vb2 <- vb1[1:248]
+
+sum(abs(dgpbinom(NULL, pp1, va1, vb1, method = "DivideFFT")
+        - dgpbinom(NULL, pp1, va1, vb1, method = "Convolve")))
+
+sum(abs(dgpbinom(NULL, pp2, va2, vb2, method = "DivideFFT")
+        - dgpbinom(NULL, pp2, va2, vb2, method = "Convolve")))
+```
+
+The reason is that the G-DC-FFT method splits the input `probs`, `val_p` and `val_q` vectors into parts such that the numbers of possible observations of all parts are as equally sized as possible. Their distributions are then computed separately with the G-DC approach. The results of the portions are then convoluted by means of the Fast Fourier Transformation. For small $n$ and small distribution sizes, no splitting is needed. In addition, the G-DC-FFT procedure, just like the DC-FFT method, does not produce probabilities $\leq 5.55e\text{-}17$, i.e. smaller values are rounded off to $0$, if the total number of possible observations is smaller than $750$, whereas the smallest possible result of the DC algorithm is $\sim 1e\text{-}323$. This is most likely caused by the used FFTW3 library.
+
+```{r divide3-gen}
+d1 <- dgpbinom(NULL, pp1, va1, vb1, method = "DivideFFT")
+d2 <- dgpbinom(NULL, pp1, va1, vb1, method = "Convolve")
+
+min(d1[d1 > 0])
+min(d2[d2 > 0])
+```
+
+### Generalized Discrete Fourier Transformation of the Characteristic Function
+
+The *Generalized Discrete Fourier Transformation of the Characteristic Function* (G-DFT-CF) approach is requested with `method = "Characteristic"`.
+
+```{r dftcf-gen}
+set.seed(1)
+pp <- runif(10)
+wt <- sample(1:10, 10, TRUE)
+va <- sample(0:10, 10, TRUE)
+vb <- sample(0:10, 10, TRUE)
+
+dgpbinom(NULL, pp, va, vb, wt, "Characteristic")
+pgpbinom(NULL, pp, va, vb, wt, "Characteristic")
+```
+
+As can be seen, the G-DFT-CF procedure does not produce probabilities $\leq 2.2e\text{-}16$, i.e. smaller values are rounded off to 0, most likely due to the used FFTW3 library.
+
+### Processing Speed Comparisons
+
+To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability and value vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 7 1800X with 32 GiB of RAM and Windows 10 Education (20H2).
+
+```{r benchmark-gen}
+library(microbenchmark)
+n <- 2500
+set.seed(1)
+va <- sample(1:50, n, TRUE)
+vb <- sample(1:50, n, TRUE)
+
+f1 <- function() dgpbinom(NULL, runif(n), va, vb, method = "DivideFFT")
+f2 <- function() dgpbinom(NULL, runif(n), va, vb, method = "Convolve")
+f3 <- function() dgpbinom(NULL, runif(n), va, vb, method = "Characteristic")
+
+microbenchmark(f1(), f2(), f3(), times = 51)
+```
+
+Clearly, the G-DC-FFT procedure is the fastest one. It outperforms both the G-DC and G-DFT-CF approaches. The latter one needs a lot more time than the others. Generally, the computational speed advantage of the G-DC-FFT procedure increases with larger $n$ (and $m$).

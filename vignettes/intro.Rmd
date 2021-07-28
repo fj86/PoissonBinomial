@@ -1,0 +1,223 @@
+---
+title: "Efficient Computation of Ordinary and Generalized Poisson Binomial Distributions"
+output: 
+  rmarkdown::html_vignette: 
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Efficient Computation of Ordinary and Generalized Poisson Binomial Distributions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(PoissonBinomial)
+```
+
+## Introduction
+
+The Poisson binomial distribution (in the following abbreviated as PBD) is becoming increasingly important, especially in the areas of statistics, finance, insurance mathematics and quality management. This package provides functions for two types of PBDs: ordinary and generalized PBDs (henceforth referred to as O-PBDs and G-PBDs).
+
+### Ordinary Poisson Binomial Distribution
+
+The O-PBD is the distribution of the sum of a number $n$ of independent Bernoulli-distributed random indicators $X_i \in \{0, 1\}$ $(i = 1, ..., n)$: $$X := \sum_{i = 1}^{n}{X_i}.$$ Each of the $X_i$ possesses a predefined probability of success $p_i := P(X_i = 1)$ (subsequently $P(X_i = 0) = 1 - p_i =: q_i$). With this, mean, variance and skewness can be expressed as $$E(X) = \sum_{i = 1}^{n}{p_i} \quad \quad Var(X) = \sum_{i = 1}^{n}{p_i q_i} \quad \quad Skew(X) = \frac{\sum_{i = 1}^{n}{p_i q_i(q_i - p_i)}}{\sqrt{Var(X)}^3}.$$ All possible observations are in $\{0, ..., n\}$.
+
+### Generalized Poisson Binomial Distribution
+
+The G-PBD is defined very similar. Again, it is the distribution of a sum random variables, but here, each $X_i \in \{u_i, v_i\}$ with $P(X_i = u_i) =: p_i$ and $P(X_i = v_i) = 1 - p_i =: q_i$. Using ordinary Bernoulli-distributed random variables $Y_i$, $X_i$ can be expressed as $X_i = u_i Y_i + v_i(1 - Y_i) = v_i + Y_i \cdot (u_i - v_i)$. As a result, mean, variance and skewness are given by $$E(X) = \sum_{i = 1}^{n}{v_i} + \sum_{i = 1}^{n}{p_i (u_i - v_i)} \quad \quad Var(X) = \sum_{i = 1}^{n}{p_i q_i(u_i - v_i)^2} \\Skew(X) = \frac{\sum_{i = 1}^{n}{p_i q_i(q_i - p_i)(u_i - v_i)^3}}{\sqrt{Var(X)}^3}.$$ All possible observations are in $\{U, ..., V\}$ with $U := \sum_{i = 1}^{n}{\min\{u_i, v_i\}}$ and $V := \sum_{i = 1}^{n}{\max\{u_i, v_i\}}$. Note that the size $m := V - U$ of the distribution does not generally equal $n$!
+
+### Existing R Packages
+
+Computing these distributions exactly is computationally demanding, but in the last few years, some efficient algorithms have been developed. Particularly significant in this respect are the works of [Hong (2013)](http://dx.doi.org/10.1016/j.csda.2012.10.006), who derived the DFT-CF procedure for O-PBDs, [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007) who developed two immensely faster algorithms for O-PBDs, namely the DC and DC-FFT procedures, and [Zhang, Hong and Balakrishnan (2018)](https://doi.org/10.1080/00949655.2018.1440294) who further developed [Hong's (2013)](http://dx.doi.org/10.1016/j.csda.2012.10.006) DFT-CF algorithm for G-PBDs (in the following, this generalized procedure is referred to as G-DFT-CF). Still, only a few R packages exist for the calculation of either ordinary and generalized PBDs, e.g. [`poibin`](https://cran.r-project.org/package=poibin) and [`poisbinom`](https://cran.r-project.org/package=poisbinom) for O-PBDs and [`GPB`](https://cran.r-project.org/package=GPB) for G-PDBs. Before the release of this `PoissonBinomial` package, there has been no R package that implemented the DC and DC-FFT algorithms of [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007), as they only published a [reference implementation](https://github.com/biscarri1/convpoibin) for R, but refrained from releasing it as a package. Additionally, there are no comparable approaches for G-PBDs to date.
+
+The `poibin` package implements the DFT-CF algorithm along with the exact recursive method of [Barlow & Heidtmann (1984)](http://dx.doi.org/10.1109/TR.1984.5221843) and Normal and Poisson approximations. However, both exact procedures of this package possess some disadvantages, i.e. they are relatively slow at computing very large distributions, with the recursive algorithm being also very memory consuming. The G-DFT-CF procedure is implemented in the `GPB` package and inherits this performance drawback. The `poisbinom` package provides a more efficient and much faster DFT-CF implementation. The performance improvement over the `poibin` package lies in the use of the [FFTW C library](http://www.fftw.org). Unfortunately, it sometimes yields some negative probabilities in the tail regions, especially for large distributions. However, this numerical issue has not been addressed to date. This `PoissonBinomial` also utilizes FFTW for both DFT-CF and G-DFT-CF algorithms, but corrects that issue. In addition to the disadvantages regarding computational speed (`poibin` and `GPB`) or numerics (`poisbinom`), especially for very large distributions, the aforementioned packages do not provide headers for their internal C/C++ functions, so that they cannot be imported directly by C or C++ code of other packages that use for example `Rcpp`.
+
+In some situations, people might have to deal with Poisson binomial distributions that include Bernoulli variables with $p_i \in \{0, 1\}$. Calculation performance can be further optimized by handling these indicators before the actual computations. Approximations also benefit from this in terms of accuracy. None of the aforementioned packages implements such optimizations. Therefore, the advantages of this `PoissonBinomial` package can be summarized as follows:
+
+* Efficient computation of very large distributions with both exact and approximate algorithms for O-PBDs and G-PBDs
+* Provides headers for the C++ functions so that other packages may include them in their own C++ code
+* Handles (sometimes large numbers of) 0- and 1-probabilities to speed up performance
+
+In total, this package includes 10 different algorithms of computing ordinary Poisson binomial distributions, including optimized versions of the Normal, Refined Normal and Poisson approaches, and 5 approaches for generalized PBDs. In addition, the implementation of the exact recursive procedure for O-PBDs was rewritten so that it is considerably less memory intensive: the `poibin` implementation needs the memory equivalent of $(n + 1)^2$ values of type `double`, while ours only needs $3 \cdot (n + 1)$.
+
+***
+
+## Exact Procedures
+
+### Ordinary Poisson Binomial Distribution
+
+In this package implements the following exact algorithms for computing ordinary Poisson binomial distributions:
+
+* the *Direct Convolution* approach of [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007),
+* the *Divide & Conquer FFT Tree Convolution* procedure of [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007),
+* the *Discrete Fourier Transformation of the Characteristic Function* algorithm of [Hong (2013)](http://dx.doi.org/10.1016/j.csda.2012.10.006) and
+* the *Recursive Formula* of [Barlow & Heidtmann (1984)](http://dx.doi.org/10.1109/TR.1984.5221843).
+
+### Generalized Poisson Binomial Distribution
+
+For generalized Poisson binomial distributions, this package provides:
+
+* a generalized adaptation of the *Direct Convolution* approach of [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007),
+* a generalized *Divide & Conquer FFT Tree Convolution*, inspired by the respective procedure of [Biscarri, Zhao & Brunner (2018)](http://dx.doi.org/10.1016/j.csda.2018.01.007) for O-PDBs,
+* the *Generalized Discrete Fourier Transformation of the Characteristic Function* algorithm of [Zhang, Hong and Balakrishnan (2018)](https://doi.org/10.1080/00949655.2018.1440294).
+
+### Examples
+
+Examples and performance comparisons of these procedures are presented in a [separate vignette](proc_exact.html).
+
+***
+
+## Approximations
+
+### Ordinary Poisson Binomial Distribution
+
+In addition, the following O-PBD approximation methods are included:
+
+* the *Poisson Approximation* approach,
+* the *Arithmetic Mean Binomial Approximation* procedure,
+* *Geometric Mean Binomial Approximation* algorithms,
+* the *Normal Approximation* and
+* the *Refined Normal Approximation*.
+
+### Generalized Poisson Binomial Distribution
+
+For G-PBDs, there are
+
+* the *Normal Approximation* and
+* the *Refined Normal Approximation*.
+
+### Examples
+
+Examples and performance comparisons of these approaches are provided in a [separate vignette](proc_approx.html) as well.
+
+***
+
+## Handling special cases, zeros and ones
+
+Handling special cases, such as ordinary binomial distributions, zeros and ones is useful to speed up performance. Unfortunately, some approximations do not work well for Bernoulli trials with $p_i \in \{0, 1\}$, e.g. the Geometric Mean Binomial Approximations. This is why handling these values *before* the actual computation of the distribution is not only a performance tweak, but sometimes even a necessity. It is achieved by some simple preliminary considerations.
+
+### Ordinary Poisson Binomial Distributions
+
+1. All $p_i = p$ are equal?    
+In this case, we have a usual binomial distribution. The specified method of computation is then ignored. In particular, the following applies:
+    a) $p = 0$: The only observable value is $0$, i.e. $P(X = 0) = 1$ and $P(X \neq 0) = 0$.
+    b) $p = 1$: The only observable value is $n$, i.e. $P(X = n) = 1$ and $P(X \neq n) = 0$.
+2. All $p_i \in \{0, 1\} (i = 1, ..., n)$?    
+If one $p_i$ is 1, it is impossible to measure 0 successes. Following the same logic, if two $p_i$ are 1, we cannot observe 0 and 1 successes and so on. In general, a number of $n_1$ values with $p_i = 1$ makes it impossible to measure $0, ..., n_1 - 1$ successes. Likewise, if there are $n_0$ Bernoulli trials with $p_i = 0$, we cannot observe $n - n_0 + 1, ..., n$ successes. If all $p_i \in \{0, 1\}$, it holds $n = n_0 + n_1$. As a result, the only observable value is $n_1$, i.e. $P(X = n_1) = 1$ and $P(X \neq n_1) = 0$.
+3. Are there $p_i \notin \{0, 1\}$?    
+Using the deductions from above, we can only observe an "inner" distribution in the range of $n_1, n_1 + 1, ..., n - n_0$, i.e. $P(X \in \{n_1, ..., n - n_0\}) > 0$ and $P(X < n_1) = P(X > n - n_0) = 0$. As a result, $X$ can be expressed as $X = n_1 + Y$ with $Y \sim PBin(\{p_i|0 < p_i < 1\})$ and $|\{p_i|0 < p_i < 1\}| = n - n_0 - n_1$. Subsequently, the Poisson binomial distribution must only be computed for $Y$. Especially, if there is only one $p_i \notin \{0, 1\}$, $Y$ follows a Bernoulli distribution with parameter $p_i$, i.e. $P(X = n_1) = P(Y = 0) = 1 - p_i$ and $P(X = n_1 + 1) = P(Y = 1) = p_i$.
+
+These cases are illustrated in the following example:
+
+```{r ex-opdb}
+# Case 1
+dpbinom(NULL, rep(0.3, 7))
+dbinom(0:7, 7, 0.3) # equal results
+
+dpbinom(NULL, c(0, 0, 0, 0, 0, 0, 0)) # only 0 is observable
+dpbinom(0, c(0, 0, 0, 0, 0, 0, 0)) # confirmation
+
+dpbinom(NULL, c(1, 1, 1, 1, 1, 1, 1)) # only 7 is observable
+dpbinom(7, c(1, 1, 1, 1, 1, 1, 1)) # confirmation
+
+# Case 2
+dpbinom(NULL, c(0, 0, 0, 0, 1, 1, 1)) # only 3 is observable
+dpbinom(3, c(0, 0, 0, 0, 1, 1, 1)) # confirmation
+
+# Case 3
+dpbinom(NULL, c(0, 0, 0.1, 0.2, 0.4, 0.8, 1)) # only 1-5 are observable
+dpbinom(1:5, c(0, 0, 0.1, 0.2, 0.4, 0.8, 1)) # confirmation
+
+dpbinom(NULL, c(0, 0, 0.4, 1)) # only 1 and 2 are observable
+dpbinom(1:2, c(0, 0, 0.4, 1)) # confirmation
+```
+
+### Generalized Poisson Binomial Distributions
+
+1. All $u_i \in \{0, 1\}$ and all $v_i = 1 - u_i$?  
+Then, it is an ordinary Poisson binomial distribution with parameters $p_i' = p_i$ for all $i$ for which $u_i = 1$ and $p_i' = 1 - p_i$ otherwise. This includes all the special cases described above.
+2. All $u_i = u$ are equal and all $v_i = v$ are equal?  
+In this case, we have a linearly transformed ordinary Poisson binomial distribution, i.e. $X$ can be expressed as $X = uY + v(n - Y)$ with $Y \sim PBin(p_1, ..., p_n)$. In particular, if all $p_i = p$ are also the same, we have a linear transformation of the usual binomial distribution, i.e. $X = uZ + v(n - Z)$ with $Z \sim Bin(n, p)$. Summarizing this, the following applies:
+    a) All $p_i = 0$: The only observable value is $n \cdot v$, i.e. $P(X = n \cdot v) = 1$ and $P(X \neq n \cdot v) = 0$.
+    b) All $p_i = 1$: The only observable value is $n \cdot u$, i.e. $P(X = n \cdot u) = 1$ and $P(X \neq n \cdot u) = 0$.
+    c) All $p_i = p$: Observable values are in $\{u \cdot k + v \cdot (n - k) | k = 0, ..., n\}$ and $P(X = u \cdot k + v \cdot (n - k)) = P(Z = k)$.
+    d) Otherwise: Observable values are in $\{u \cdot k + v \cdot (n - k) | k = 0, ..., n\})$ and $P(X = u \cdot k + v(n - k)) = P(Y = k)$
+3. All $p_i \in \{0, 1\}$?  
+Let $I = \{i\, |\, p_i = 1\} \subseteq \{1, ..., n\}$ and $J = \{i\, |\, p_i = 0\} \subseteq \{1, ..., n\}$. Then, we have:
+    a) All $p_i = 0$: The only observable value is $v^* := \sum_{i = 1}^{n}{v_i}$, i.e. $P(X = v^*) = 1$ and $P(X \neq v^*) = 0$.
+    b) All $p_i = 1$: The only observable value is $u^* := \sum_{i = 1}^{n}{u_i}$, i.e. $P(X = u^*) = 1$ and $P(X \neq u^*) = 0$.
+    c) Otherwise, The only observable value is $w^* := \sum_{i \in I}{u_i} + \sum_{i \in J}{v_i}$, i.e. $P(X = w^*) = 1$ and $P(X \neq w^*) = 0$. Note that the case that any $u_i = v_i$ is equivalent to $p_i = 1$, because the corresponding random variable $X_i$ has always the same (non-random) value.    
+4. Are there $p_i \notin \{0, 1\}$?  
+Let $I$, $J$ and $w^*$ as above and $K = \{i\, |\, p_i > 0 \, \wedge p_i < 1\} \subseteq \{1, ..., n\}$. Then, $X$ can be expressed as $X = w^* + Z$ with $Z = \sum_{i \in K}{X_i}$ following a (reduced) generalized Poisson Bernoulli distribution. In particular, if only one $p_i \notin \{0, 1\}$, Z follows a linearly transformed Bernoulli distribution.
+
+These cases are illustrated in the following example:
+
+```{r ex-gpdb}
+set.seed(1)
+pp <- runif(7)
+va <- sample(0:6, 7, TRUE)
+vb <- sample(0:6, 7, TRUE)
+
+# Case 1
+dgpbinom(NULL, pp, rep(1, 7), rep(0, 7))
+dpbinom(NULL, pp) # equal results
+
+dgpbinom(NULL, pp, rep(0, 7), rep(1, 7))
+dpbinom(NULL, 1 - pp) # equal results
+
+dgpbinom(NULL, pp, c(rep(1, 3), rep(0, 4)), c(rep(0, 3), rep(1, 4)))
+dpbinom(NULL, c(pp[1:3], 1 - pp[4:7])) # reorder for 0 and 1; equal results
+
+# Case 2 a)
+dgpbinom(NULL, rep(0, 7), rep(4, 7), rep(2, 7)) # only 14 is observable
+dgpbinom(7 * 2, rep(0, 7), rep(4, 7), rep(2, 7)) # confirmation
+
+# Case 2 b)
+dgpbinom(NULL, rep(1, 7), rep(4, 7), rep(2, 7)) # only 28 is observable
+dgpbinom(7 * 4, rep(1, 7), rep(4, 7), rep(2, 7)) # confirmation
+
+# Case 2 c)
+dgpbinom(NULL, rep(0.3, 7), rep(4, 7), rep(2, 7))
+dbinom(0:7, 7, 0.3) # equal results, but on different support set
+
+# Case 2 d)
+dgpbinom(NULL, pp, rep(4, 7), rep(2, 7))
+dpbinom(NULL, pp) # equal results, but on different support set
+
+# Case 3 a)
+dgpbinom(NULL, c(0, 0, 0, 0, 0, 0, 0), va, vb) # only sum(vb) is observable
+dgpbinom(sum(vb), rep(0, 7), va, vb) # confirmation
+
+# Case 3 b)
+dgpbinom(NULL, c(1, 1, 1, 1, 1, 1, 1), va, vb) # only sum(va) is observable
+dgpbinom(sum(va), rep(1, 7), va, vb) # confirmation
+
+# Case 3 c)
+dgpbinom(NULL, c(0, 0, 0, 1, 1, 1, 1), va, vb) # only sum(va[4:7], vb[1:3]) is observable
+dgpbinom(sum(va[4:7], vb[1:3]), c(0, 0, 0, 1, 1, 1, 1), va, vb) # confirmation
+
+# Case 4
+dgpbinom(NULL, c(0, 0, 0.3, 0.6, 1, 1, 1), va, vb)
+sure <- sum(va[5:7], vb[1:2])
+x.transf <- sum(pmin(va[3:4], vb[3:4])):sum(pmax(va[3:4], vb[3:4]))
+dgpbinom(sure + x.transf, c(0, 0, 0.3, 0.6, 1, 1, 1), va, vb)
+dgpbinom(x.transf, c(0.3, 0.6), va[3:4], vb[3:4]) # equal results
+
+dgpbinom(NULL, c(0, 0, 0, 0.6, 1, 1, 1), va, vb)
+sure <- sum(va[5:7], vb[1:3])
+x.transf <- va[4]:vb[4]
+dgpbinom(sure + x.transf, c(0, 0, 0, 0.6, 1, 1, 1), va, vb)
+dgpbinom(x.transf, 0.6, va[4], vb[4]) # equal results; essentially transformed Bernoulli
+```
+
+***
+
+## Usage with Rcpp
+
+How to import and use the internal C++ functions in `Rcpp` based packages is described in a [separate vignette](use_with_rcpp.html).

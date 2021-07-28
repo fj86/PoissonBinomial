@@ -1,0 +1,209 @@
+---
+title: "Usage with Rcpp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Usage with Rcpp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Each procedure's probability mass function (PMF) and cumulative distribution function (CDF) was implemented in *C++* using the `Rcpp` package. By means of `Rcpp::interface`, these functions are exported to both the package's *R* namespace and *C++* headers. That way, the following functions can then be used by other packages that use `Rcpp`:
+
+```
+/***   Ordinary Poisson Binomial Distribution   ***/
+
+
+/***   Exact Procedures   ***/
+
+// Direct Convolution (DC)
+
+// PMF
+NumericVector dpb_conv(const IntegerVector obs,
+                       const NumericVector probs);
+                       
+// CDF
+NumericVector ppb_conv(const IntegerVector obs,
+                       const NumericVector probs,
+                       const bool lower_tail);
+
+
+// Divide & Conquer FFT Tree Convolution (DC-FFT)
+
+// PMF
+NumericVector dpb_dc(const IntegerVector obs,
+                     const NumericVector probs);
+                     
+// CDF
+NumericVector ppb_dc(const IntegerVector obs,
+                     const NumericVector probs,
+                     const bool lower_tail);
+
+
+// Discrete Fourier Transformation of the Characteristic Function (DFT-CF)
+
+// PMF
+NumericVector dpb_dftcf(const IntegerVector obs,
+                        const NumericVector probs);
+                        
+// CDF
+NumericVector ppb_dftcf(const IntegerVector obs, const NumericVector probs,
+                        const bool lower_tail);
+                        
+
+// Recursive Formula (RF)
+
+// PMF
+NumericVector dpb_rf(const IntegerVector obs,
+                     const NumericVector probs);
+
+// CDF
+NumericVector ppb_rf(const IntegerVector obs,
+                     const NumericVector probs,
+                     const bool lower_tail);
+
+
+
+/***   Approximations   ***/
+
+
+// Arithmetic Mean Binomial Approximation (AMBA)
+
+// PMF
+NumericVector dpb_mean(const IntegerVector obs,
+                       const NumericVector probs);
+
+// CDF
+NumericVector ppb_mean(const IntegerVector obs,
+                       const NumericVector probs,
+                       const bool lower_tail);
+
+
+// Geometric Mean Binomial Approximations (GMBA)
+
+// PMF
+NumericVector dpb_gmba(const IntegerVector obs, 
+                       const NumericVector const probs,
+                       const bool anti);
+                       
+// CDF
+NumericVector ppb_gmba(const IntegerVector obs,
+                       const NumericVector probs,
+                       const bool anti,
+                       const bool lower_tail);
+
+
+// Poisson Approximation (PA)
+
+// PMF
+NumericVector dpb_pa(const IntegerVector obs,
+                     const NumericVector probs);
+                     
+// CDF
+NumericVector ppb_pa(const IntegerVector obs,
+                     const NumericVector probs,
+                     const bool lower_tail);
+                     
+
+// Normal Approximations (NA, RNA)
+
+// PMF
+NumericVector dpb_na(const IntegerVector obs,
+                     const NumericVector probs,
+                     const bool refined);
+                     
+// CDF
+NumericVector ppb_na(const IntegerVector obs,
+                     const NumericVector probs,
+                     const bool refined,
+                     const bool lower_tail);
+                     
+
+
+
+/***   Generalized Poisson Binomial Distribution   ***/
+
+
+/***   Exact Procedures   ***/
+
+
+// Generalized Direct Convolution (G-DC)
+
+// PMF
+NumericVector dgpb_conv(const IntegerVector obs,
+                        const NumericVector probs,
+                        const NumericVector val_p,
+                        const NumericVector val_q);
+                        
+// CDF
+NumericVector pgpb_conv(const IntegerVector obs,
+                        const NumericVector probs,
+                        const NumericVector val_p,
+                        const NumericVector val_q,
+                        const bool lower_tail);
+                        
+
+// Generalized Discrete Fourier Transformation of the Characteristic Function (G-DFT-CF)
+
+// PMF
+NumericVector dgpb_dftcf(const IntegerVector obs,
+                         const NumericVector probs,
+                         const NumericVector val_p,
+                         const NumericVector val_q);
+                         
+// CDF
+NumericVector pgpb_dftcf(const IntegerVector obs,
+                         const NumericVector probs,
+                         const NumericVector val_p,
+                         const NumericVector val_q,
+                         const bool lower_tail);
+                       
+                       
+                       
+/***   Approximations   ***/
+
+
+// Generalized Normal Approximations (G-NA, G-RNA)
+
+// PMF
+NumericVector dgpb_na(const IntegerVector obs,
+                      const NumericVector probs,
+                      const NumericVector val_p,
+                      const NumericVector val_q,
+                      const bool refined,
+                      const bool lower_tail);
+                      
+// CDF
+NumericVector pgpb_na(const IntegerVector obs,
+                      const NumericVector probs,
+                      const NumericVector val_p,
+                      const NumericVector val_q,
+                      const bool refined,
+                      const bool lower_tail);
+```
+
+
+## Making the functions usable
+
+There are only a few simple steps to follow:
+
+1. Add the `Rcpp` and `PoissonBinomial` packages to the `Imports` and `LinkingTo` fields of the `DESCRIPTION` file.
+2. Add `#include <PoissonBinomial.h>` to source (`.cpp`) and/or header (`.h`, `.hpp`) files in which these functions are to be used.
+3. Optional: Add `using namespace PoissonBinomial;`. Without it, the use of functions of this package must be fully qualified with `PoissonBinomial::`, e.g. `PoissonBinomial::dpb_dc` instead of `dpb_dc`
+
+
+## Important Remarks
+
+For better performance, the PMFs and CDFs do not check any of their parameters for plausibility! This must be done by the user by means of *R* or *C/C++* functions. It must be made sure that
+
+* the observations in the `obs` vectors are valid, 
+* the probabilities in the `probs` vector are in $(0, 1)$ and
+* for `dpb_gmba`, `ppb_gmba`, `dpb_na`, `ppb_na`, `dgpb_na` and `pgpb_na`: the probabilities in the `probs` vector **must not** contain zeros or ones.
+
+Furthermore, the CDFs only compute non-logarithmic probabilities. If logarithms are needed, they must be computed "manually".
