@@ -1,8 +1,8 @@
 Package: PoissonBinomial
 Type: Package
 Title: Efficient Computation of Ordinary and Generalized Poisson Binomial Distributions
-Version: 1.2.4
-Date: 2021-07-27
+Version: 1.2.5
+Date: 2022-05-31
 Authors@R: person("Florian", "Junge", role = c("aut", "cre"), email = "florian.junge@h-da.de")
 Maintainer: Florian Junge <florian.junge@h-da.de>
 Language: en-US
@@ -12,11 +12,11 @@ Encoding: UTF-8
 Imports: Rcpp (>= 1.0.3)
 LinkingTo: Rcpp
 SystemRequirements: fftw3 (>= 3.3)
-RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown,
     microbenchmark
 VignetteBuilder: knitr
-URL: http://github.com/DISOhda/PoissonBinomial
-BugReports: http://github.com/DISOhda/PoissonBinomial/issues
+URL: https://github.com/DISOhda/PoissonBinomial
+BugReports: https://github.com/DISOhda/PoissonBinomial/issues
+RoxygenNote: 7.2.0

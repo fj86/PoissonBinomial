@@ -107,7 +107,7 @@ int vectorGCD(const IntegerVector x){
   IntegerVector y;
   y = abs(x);
   
-  // minimum of 'x' (add 1 to make sure that it is greater than the first value)
+  // initialize minimum of 'x' (add 1 to make sure that it is greater than the first value)
   int xmin = y[0] + 1;
   
   // search for minimum, one and zero; return it, if found
@@ -121,8 +121,8 @@ int vectorGCD(const IntegerVector x){
   int a, b, r, i = 0, gcd = xmin;
   
   while(gcd > 1 && i < size){
-    a = std::max<int>(gcd, x[i]);
-    b = std::min<int>(gcd, x[i]);
+    a = std::max<int>(gcd, y[i]);
+    b = std::min<int>(gcd, y[i]);
     
     while(b != 0){
       r = a % b;
@@ -750,70 +750,78 @@ NumericVector pgpb_na(IntegerVector obs, NumericVector probs, NumericVector val_
 
 
 // Generalized Direct Convolution (G-DC)
+NumericVector dgpb_conv_int(NumericVector probs, IntegerVector diffs, int sizeIn, int sizeOut){
+  // results vectors
+  NumericVector results(sizeOut);
+  // initialize result of first convolution step
+  results[0] = 1.0;
+  // ending position of last computed iteration
+  int end = 0;
+  // perform convolution
+  for(int i = 0; i < sizeIn; i++){
+    checkUserInterrupt();
+    if(diffs[i]){
+      for(int j = end; j >= 0; j--){
+        if(results[j]){
+          if(diffs[i] > 0){
+            results[j + diffs[i]] += results[j] * probs[i];
+            results[j] *= 1 - probs[i];
+          }else{
+            results[j + diffs[i]] += results[j] * (1 - probs[i]);
+            results[j] *= probs[i];
+          }
+        }
+      }
+      // update ending position
+      if(diffs[i] > 0) end += diffs[i]; else end -= diffs[i];
+    }
+  }
+  // "correct" numerically false (and thus useless) results
+  results[results > 1] = 1;
+  // make sure that probability masses sum up to 1
+  norm_dpb(results);
+  // return final results
+  return results;
+}
+
 // [[Rcpp::export]]
 NumericVector dgpb_conv(const IntegerVector obs, const NumericVector probs, const IntegerVector val_p, const IntegerVector val_q){
   // number of probabilities of success
   const int sizeIn = probs.length();
   // determine pairwise minimum and maximum
   const IntegerVector v = pmin(val_p, val_q);
-  const IntegerVector u = pmax(val_p, val_q);
+  //const IntegerVector u = pmax(val_p, val_q);
   // compute differences
-  IntegerVector d = u - v;
+  IntegerVector diffs = val_p - val_q;
   // final output size
-  const int sizeOut = sum(d) + 1;
+  const int sizeOut = sum(abs(diffs)) + 1;
   // greatest common divisor of the differences
-  const int gcd = vectorGCD(d[d > 0]);
-  // rescale differences according to gcd
-  if(gcd > 1) d = d / gcd;
+  const int gcd = vectorGCD(diffs[diffs != 0]);
+  // rescale differences according to GCD
+  if(gcd > 1) diffs = diffs / gcd;
   // theoretical rescaled maximum
-  const int max_rescaled = sum(d);
-  // output size
-  const int sizeOut_rescaled = max_rescaled + 1;
-  
-  // if val_p[i] was not the larger one, the respective probs[i] has to be 'flipped'
-  // furthermore: if difference is 0 (i.e. u[i] equals v[i]), a non-zero outcome is impossible
-  NumericVector probs_flipped(sizeIn);
-  for(int i = 0; i < sizeIn; i++){
-    if(!d[i]) probs_flipped[i] = 0.0;
-    else if(val_p[i] < u[i]) probs_flipped[i] = 1 - probs[i];
-      else probs_flipped[i] = probs[i];
-  }
+  const int sizeOut_rescaled = (sizeOut - 1) / gcd + 1;
   
   // results vectors
   NumericVector results(sizeOut);
   NumericVector results_rescaled;
   
-  // if maximum rescaled difference equals 1, we have an ordinary poisson binomial distribution
-  if(max(d) == 1){
-    // compute ordinary distribution
-    results_rescaled = dpb_conv(IntegerVector(), probs_flipped[d > 0]);
-  }else{
-    results_rescaled = NumericVector(sizeOut_rescaled);
-    // initialize result of first convolution step
-    results_rescaled[0] = 1.0;
-    // ending position of last computed iteration
-    int end = 0;
-    // perform convolution
+  // if maximum absolute difference equals 1, we have an ordinary poisson binomial distribution
+  if(max(diffs) == 1 && min(diffs) == -1){
+    // if val_p[i] was not the larger one, the respective probs[i] has to be 'flipped'
+    // furthermore: if difference is 0 (i.e. u[i] equals v[i]), a non-zero outcome is impossible
+    NumericVector probs_flipped(sizeIn);
     for(int i = 0; i < sizeIn; i++){
-      checkUserInterrupt();
-      if(probs_flipped[i]){
-        for(int j = end; j >= 0; j--){
-          if(d[i] && results_rescaled[j] && probs_flipped[i]){
-            results_rescaled[j + d[i]] += results_rescaled[j] * probs_flipped[i];
-            results_rescaled[j] *= 1 - probs_flipped[i];
-          }
-        }
-        
-        // update ending position
-        end += d[i];
+      if(diffs[i]){
+        if(diffs[i] < 0) probs_flipped[i] = 1 - probs[i];
+        else probs_flipped[i] = probs[i];
       }
     }
+    // compute ordinary distribution
+    results_rescaled = dpb_conv(IntegerVector(), probs_flipped[diffs != 0]);
+  }else{
+    results_rescaled = dgpb_conv_int(probs, diffs, sizeIn, sizeOut_rescaled);
   }
-  // "correct" numerically false (and thus useless) results
-  results_rescaled[results_rescaled > 1] = 1;
-  
-  // make sure that probability masses sum up to 1
-  norm_dpb(results_rescaled);
   
   // map results to generalized distribution (scale-back)
   for(int i = 0; i < sizeOut_rescaled; i++)
@@ -962,7 +970,7 @@ NumericVector dgpb_dc(const IntegerVector obs, const NumericVector probs, const 
       v = IntegerVector(u.length());
       
       // direct convolution
-      results_rescaled[target] = dgpb_conv(IntegerVector(), probs_flipped[group_indices == i], u, v);
+      results_rescaled[target] = dgpb_conv_int(probs_flipped[group_indices == i], u, u.length(), end - start + 1);
       
       // update starting and ending positions
       group_starts[i] = start;
@@ -1051,21 +1059,22 @@ NumericVector dgpb_dftcf(const IntegerVector obs, const NumericVector probs, con
   // output size
   const int sizeOut_rescaled = max_rescaled + 1;
   
-  // if val_p[i] was not the larger one, the respective probs[i] has to be 'flipped'
-  // furthermore: if difference is 0 (i.e. u[i] equals v[i]), a non-zero outcome is impossible
-  NumericVector probs_flipped(sizeIn);
-  for(int i = 0; i < sizeIn; i++){
-    if(!d[i]) probs_flipped[i] = 0.0;
-    else if(val_p[i] < u[i]) probs_flipped[i] = 1 - probs[i];
-      else probs_flipped[i] = probs[i];
-  }
   
   // results vectors
   NumericVector results(sizeOut);
   NumericVector results_rescaled;
   
-  // if max_rescaled equals input size, we have an ordinary poisson binomial distribution
+  // if maximum absolute difference is 1, we have an ordinary poisson binomial distribution
   if(max(d) == 1){
+    // if val_p[i] was not the larger one, the respective probs[i] has to be 'flipped'
+    // furthermore: if difference is 0 (i.e. u[i] equals v[i]), a non-zero outcome is impossible
+    NumericVector probs_flipped(sizeIn);
+    for(int i = 0; i < sizeIn; i++){
+      if(d[i]){
+        if(val_p[i] < u[i]) probs_flipped[i] = 1 - probs[i];
+        else probs_flipped[i] = probs[i];
+      }
+    }
     // compute ordinary distribution
     results_rescaled = dpb_dftcf(IntegerVector(), probs_flipped[d > 0]);
   }else{
@@ -1087,9 +1096,13 @@ NumericVector dgpb_dftcf(const IntegerVector obs, const NumericVector probs, con
       checkUserInterrupt();
       std::complex<double> product = 1.0;
       for(int k = 0; k < sizeIn; k++){
-        if(probs_flipped[k]){
-          if(d[k]) C_power[k] *= C[k];////
-          product *= 1.0 + probs_flipped[k] * (C_power[k] - 1.0);
+        if(d[k]){
+          C_power[k] *= C[k];
+          if(val_p[k] == u[k]){
+            if(probs[k]) product *= 1.0 + probs[k] * (C_power[k] - 1.0);
+          }else{
+            if(probs[k] < 1) product *= 1.0 + (1 - probs[k]) * (C_power[k] - 1.0);
+          }
         }
       }
       

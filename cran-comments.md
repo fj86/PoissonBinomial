@@ -1,5 +1,5 @@
 ## Test environments
-* local Kubuntu 20.04, R 4.1.0
+* local Manjaro KDE, R 4.2.0
 * win-builder (configurations: "release", "oldrelease", "devel")
 * R-hub (configurations: "sanitizers", "valgrind", "CRAN" and "Solaris")
 

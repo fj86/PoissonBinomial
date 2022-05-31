@@ -1,6 +1,12 @@
+# PoissonBinomial 1.2.5
+
+* Minor performance improvements for exact methods of `dgpbinom` and `pgpbinom`.
+* Added GitHub.
+
+
 # PoissonBinomial 1.2.4
 
-* Performance improvements and minor bug fix for quantile functions
+* Performance improvements and minor bug fix for quantile functions.
 
 
 # PoissonBinomial 1.2.3
@@ -49,7 +55,7 @@
 # PoissonBinomial 1.1.2
 
 * Bug fixes and performance improvements for `qpbinom` and `qgpbinom` that also
-  affect `rpbinom` and `rgpbinom`. Quantiles were off be one; all code that use
+  affect `rpbinom` and `rgpbinom`. Quantiles were off be one; all code that uses
   the quantile functions should be reviewed!
 * When requesting cumulative probabilities, the respective C++ implementations
   are now capable of computing these values for `lower.tail = FALSE` on their
@@ -79,7 +85,7 @@
 
 # PoissonBinomial 1.0.2
 
-* Improvements of C++ helper function "norm_dpb" to achieve better
+* Improvements of C++ helper function `norm_dpb` to achieve better
   normalization.
 * Bug fix of DFT-CF method ("Characteristic") so that negative probabilities
   are no longer possible.
