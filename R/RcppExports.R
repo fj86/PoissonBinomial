@@ -114,5 +114,5 @@ rgpb_bernoulli <- function(n, probs, val_p, val_q) {
 
 # Register entry points for exported C++ functions
 methods::setLoadAction(function(ns) {
-    .Call('_PoissonBinomial_RcppExport_registerCCallable', PACKAGE = 'PoissonBinomial')
+    .Call(`_PoissonBinomial_RcppExport_registerCCallable`)
 })

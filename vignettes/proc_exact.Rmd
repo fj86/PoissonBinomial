@@ -112,7 +112,7 @@ sum(abs(dpbinom(NULL, pp, wt, "Convolve") - dpbinom(NULL, pp, wt, "Recursive")))
 
 ### Processing Speed Comparisons
 
-To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 7 1800X with 32 GiB of RAM and Windows 10 Education (20H2).
+To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Windows 10 Education (22H2).
 
 ```{r benchmark-ord}
 library(microbenchmark)
@@ -208,7 +208,7 @@ As can be seen, the G-DFT-CF procedure does not produce probabilities $\leq 2.2e
 
 ### Processing Speed Comparisons
 
-To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability and value vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 7 1800X with 32 GiB of RAM and Windows 10 Education (20H2).
+To assess the performance of the exact procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability and value vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Windows 10 Education (22H2).
 
 ```{r benchmark-gen}
 library(microbenchmark)

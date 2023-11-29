@@ -1,3 +1,10 @@
+# PoissonBinomial 1.2.6
+
+* Addresses `[-Wformat-security]` compiler warning on newer clang configuration. See https://github.com/RcppCore/Rcpp/issues/1287
+* change of maintainer eMail to personal address
+* GitHub repo moved to personal account
+
+
 # PoissonBinomial 1.2.5
 
 * Minor performance improvements for exact methods of `dgpbinom` and `pgpbinom`.
