@@ -1,8 +1,8 @@
 Package: PoissonBinomial
 Type: Package
 Title: Efficient Computation of Ordinary and Generalized Poisson Binomial Distributions
-Version: 1.2.6
-Date: 2023-11-29
+Version: 1.2.7
+Date: 2024-09-17
 Authors@R: person("Florian", "Junge", role = c("aut", "cre"), email = "florian.junge@mailbox.org")
 Maintainer: Florian Junge <florian.junge@mailbox.org>
 Language: en-US
@@ -19,4 +19,4 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/fj86/PoissonBinomial
 BugReports: https://github.com/fj86/PoissonBinomial/issues
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

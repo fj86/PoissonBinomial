@@ -1,7 +1,7 @@
 ## Test environments
-* local Windows 10 Education 22H2 10.0.19045.3693, R 4.3.2
-* win-builder (configurations: "release", "oldrelease", "devel")
-* R-hub (configurations: "sanitizers", "valgrind", "CRAN")
+* local Manjaro Linux KDE 24.0.7, R 4.4.1
+* win-builder (configurations: "release", "oldrelease", "devel", "macos")
+* R-hub (configurations: "linux", "macos", "macos-arm64", "windows", "valgrind")
 
 
 ## R CMD check results
@@ -10,26 +10,7 @@
 0 errors | 0 warnings | 0 notes
 
 ### R-hub
-* checking CRAN incoming feasibility ... [12s] NOTE
-Maintainer: 'Florian Junge <florian.junge@mailbox.org>'
-
-New maintainer:
-  Florian Junge <florian.junge@mailbox.org>
-Old maintainer(s):
-  Florian Junge <florian.junge@h-da.de>
-  
-This change of addresses has been announced via eMail to
-<cran-submissions@r-project.org> in advance.
-
+0 errors | 0 warnings | 0 notes
 
 ### win-builder 
-* checking CRAN incoming feasibility ... [12s] NOTE
-Maintainer: 'Florian Junge <florian.junge@mailbox.org>'
-
-New maintainer:
-  Florian Junge <florian.junge@mailbox.org>
-Old maintainer(s):
-  Florian Junge <florian.junge@h-da.de>
-  
-This change of addresses has been announced via eMail to
-<cran-submissions@r-project.org> in advance.
+0 errors | 0 warnings | 0 notes

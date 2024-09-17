@@ -1,6 +1,15 @@
+# PoissonBinomial 1.2.7
+
+* Updated `Makevars` file, because it contained hardcoded paths which could
+  cause problems on some exotic configurations, e.g. MacPorts
+* Minor performance improvement for DFT-CF procedure
+* Documentation updates
+
+
 # PoissonBinomial 1.2.6
 
-* Addresses `[-Wformat-security]` compiler warning on newer clang configuration. See https://github.com/RcppCore/Rcpp/issues/1287
+* Addresses `[-Wformat-security]` compiler warning on newer clang configuration.
+  See https://github.com/RcppCore/Rcpp/issues/1287
 * change of maintainer eMail to personal address
 * GitHub repo moved to personal account
 
