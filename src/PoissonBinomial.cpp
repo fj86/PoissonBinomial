@@ -244,9 +244,11 @@ NumericVector fft_probs(const NumericVector probsA, const NumericVector probsB){
   
   // convolute by complex multiplication of the transformed input probs
   result_fft = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * sizeResult);
-  for(int i = 0; i < sizeResult; i++){
-    result_fft[i][REAL] = (probsA_fft[i][REAL]*probsB_fft[i][REAL] - probsA_fft[i][IMAG]*probsB_fft[i][IMAG])/sizeResult;
-    result_fft[i][IMAG] = (probsA_fft[i][REAL]*probsB_fft[i][IMAG] + probsA_fft[i][IMAG]*probsB_fft[i][REAL])/sizeResult;
+  result_fft[0][REAL] = 1.0;
+  result_fft[0][IMAG] = 0.0;
+  for(int i = 1; i <= sizeResult / 2; i++){
+    result_fft[i][REAL] = (probsA_fft[i][REAL]*probsB_fft[i][REAL] - probsA_fft[i][IMAG]*probsB_fft[i][IMAG]);
+    result_fft[i][IMAG] = (probsA_fft[i][REAL]*probsB_fft[i][IMAG] + probsA_fft[i][IMAG]*probsB_fft[i][REAL]);
   }
   
   // inverse tranformation of the above multiplications
@@ -262,7 +264,7 @@ NumericVector fft_probs(const NumericVector probsA, const NumericVector probsB){
   
   // return final results
   NumericVector result(sizeResult);
-  for(int i = 0; i < sizeResult; i++) result[i] = result_vec[i];
+  for(int i = 0; i < sizeResult; i++) result[i] = result_vec[i]/sizeResult;
   delete[] result_vec;
   return result;
 }
@@ -273,8 +275,8 @@ NumericVector dpb_dc(const IntegerVector obs, const NumericVector probs){//, con
   const int size = probs.length();
   
   // automatically determine number of splits, if size is above 1950
-  //int num_splits = splits < 0 ? std::max<int>(0, (int)std::ceil(std::log(size / 1950) / std::log(2.0))) : splits;
-  int num_splits = size > 1950 ? (int)std::ceil(std::log(size / 1950) / std::log(2.0)) : 0;
+  //int num_splits = splits < 0 ? std::max<int>(0, (int)std::ceil(std::log(size / 1950.0) / std::log(2.0))) : splits;
+  int num_splits = size > 1950 ? (int)std::ceil(std::log(size / 1950.0) / std::log(2.0)) : 0;
   // direct convolution is sufficient in case of 0 splits
   if(num_splits == 0) return dpb_conv(obs, probs);
   // number of groups
@@ -289,7 +291,6 @@ NumericVector dpb_dc(const IntegerVector obs, const NumericVector probs){//, con
   
   // range variables
   int start, end;
-  
   // compute group sizes with minimum size disparity
   IntegerVector group_sizes(num_groups, size / num_groups);
   const int remainder = size % num_groups;
@@ -349,6 +350,7 @@ NumericVector dpb_dc(const IntegerVector obs, const NumericVector probs){//, con
   results = NumericVector(results[Range(0, size)]);
   
   // "correct" numerically false (and thus useless) results
+  //results[results < 0] = 0;
   results[results < 5.55e-17] = 0;
   results[results > 1] = 1;
   
@@ -898,7 +900,7 @@ NumericVector dgpb_dc(const IntegerVector obs, const NumericVector probs, const 
   }else{
     // number of tree splits
     //int num_splits = splits < 0 ? std::max<int>(0, (int)std::ceil(std::log(sizeIn / 860) / std::log(2.0))) : splits;
-    int num_splits = sizeIn > 860 ? std::max<int>(0, (int)std::ceil(std::log(sizeIn / 860) / std::log(2.0))) : 0;
+    int num_splits = sizeIn > 860 ? std::max<int>(0, (int)std::ceil(std::log(sizeIn / 860.0) / std::log(2.0))) : 0;
     // direct convolution is sufficient in case of 0 splits
     if(num_splits == 0) return dgpb_conv(obs, probs_flipped, u, v);
     // number of groups
@@ -1000,6 +1002,7 @@ NumericVector dgpb_dc(const IntegerVector obs, const NumericVector probs, const 
     }
   }
   // "correct" numerically false (and thus useless) results
+  //results_rescaled[results_rescaled < 0] = 0;
   results_rescaled[results_rescaled < 5.55e-17] = 0;
   results_rescaled[results_rescaled > 1] = 1;
   
