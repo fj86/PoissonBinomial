@@ -7,7 +7,6 @@
 #'function, the cumulative distribution function, quantiles and random numbers
 #'of both ordinary and generalized Poisson binomial distributions.
 #'
-#'@docType package
 #'@import Rcpp
 #'@useDynLib PoissonBinomial, .registration = TRUE
 #'
@@ -45,4 +44,4 @@
 #'pgpbinom(80:100, pp, va, vb, method = "Convolve")
 #'qgpbinom(qq, pp, va, vb, method = "Convolve")
 #'rgpbinom(100, pp, va, vb, method = "Convolve")
-NULL
+"_PACKAGE"

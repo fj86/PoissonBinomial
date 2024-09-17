@@ -2,6 +2,7 @@
 % Please edit documentation in R/PoissonBinomial.R
 \docType{package}
 \name{PoissonBinomial-package}
+\alias{PoissonBinomial}
 \alias{PoissonBinomial-package}
 \title{Efficient Exact and Approximate Implementations for Computing Ordinary and Generalized Poisson Binomial Distributions}
 \description{
@@ -45,4 +46,16 @@ dgpbinom(NULL, pp, va, vb, method = "Convolve")
 pgpbinom(80:100, pp, va, vb, method = "Convolve")
 qgpbinom(qq, pp, va, vb, method = "Convolve")
 rgpbinom(100, pp, va, vb, method = "Convolve")
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/fj86/PoissonBinomial}
+  \item Report bugs at \url{https://github.com/fj86/PoissonBinomial/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Florian Junge \email{florian.junge@mailbox.org}
+
 }
