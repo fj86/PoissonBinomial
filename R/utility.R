@@ -42,7 +42,7 @@ check.args.GPB <- function(x, probs, val_p, val_q, wts, method, log.p = FALSE){
 }
 
 
-transform.GPB <- function(x, probs, val_p, val_q, wts){
+transformGPB <- function(x, probs, val_p, val_q, wts){
   # number of probabilities
   n <- length(probs)
   

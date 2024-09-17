@@ -123,7 +123,7 @@ dgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   method <- check.args.GPB(x, probs, val_p, val_q, wts, method)
   
   ## transform input to relevant range
-  transf <- transform.GPB(x, probs, val_p, val_q, wts)
+  transf <- transformGPB(x, probs, val_p, val_q, wts)
   
   # if x = NULL, return all possible probabilities
   if(is.null(x)) x <- transf$compl.range
@@ -188,7 +188,7 @@ pgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   method <- check.args.GPB(x, probs, val_p, val_q, wts, method)
   
   ## transform input to relevant range
-  transf <- transform.GPB(x, probs, val_p, val_q, wts)
+  transf <- transformGPB(x, probs, val_p, val_q, wts)
   
   # if x = NULL, return all possible probabilities
   if(is.null(x)) x <- transf$compl.range
@@ -269,7 +269,7 @@ qgpbinom <- function(p, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   }
   
   ## transform input to relevant range
-  transf <- transform.GPB(NULL, probs, val_p, val_q, wts)
+  transf <- transformGPB(NULL, probs, val_p, val_q, wts)
   probs <- transf$probs
   val_p <- transf$val_p
   val_q <- transf$val_q
