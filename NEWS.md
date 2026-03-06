@@ -1,3 +1,9 @@
+# PoissonBinomial 1.2.8
+
+* Addresses future `Rcpp` changes that would cause compiler warnings
+* Minor documentation updates
+
+
 # PoissonBinomial 1.2.7
 
 * Updated `Makevars` file, because it contained hardcoded paths which could
