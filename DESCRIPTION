@@ -10,8 +10,13 @@ Authors@R: person(
     comment = c(ORCID = "0009-0001-6856-6938")
   )
 Maintainer: Florian Junge <florian.junge@mailbox.org>
-Language: en-US
-Description: Efficient implementations of multiple exact and approximate methods as described in Hong (2013) <doi:10.1016/j.csda.2012.10.006>, Biscarri, Zhao & Brunner (2018) <doi:10.1016/j.csda.2018.01.007> and Zhang, Hong & Balakrishnan (2018) <doi:10.1080/00949655.2018.1440294> for computing the probability mass, cumulative distribution and quantile functions, as well as generating random numbers for both the ordinary and generalized Poisson binomial distribution.
+Language: en-GB
+Description: Efficient implementations of multiple exact and approximate methods
+  as described in Hong (2013) <doi:10.1016/j.csda.2012.10.006>, Biscarri, Zhao &
+  Brunner (2018) <doi:10.1016/j.csda.2018.01.007> and Zhang, Hong & Balakrishnan
+  (2018) <doi:10.1080/00949655.2018.1440294> for computing the probability mass,
+  cumulative distribution and quantile functions, as well as generating random
+  numbers for both the ordinary and generalised Poisson binomial distribution.
 License: GPL-3
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.11)

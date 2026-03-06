@@ -1,123 +1,123 @@
-#'@name GenPoissonBinomial-Distribution
+#' @name GenPoissonBinomial-Distribution
 #'
-#'@title The Generalized Poisson Binomial Distribution
+#' @title The Generalised Poisson Binomial Distribution
 #'
-#'@description
-#'Density, distribution function, quantile function and random generation for
-#'the generalized Poisson binomial distribution with probability vector
-#'\code{probs}.
+#' @description
+#' Density, distribution function, quantile function and random generation for
+#' the generalised Poisson binomial distribution with probability vector
+#' \code{probs}.
 #'
-#'@param x           Either a vector of observed sums or NULL. If NULL,
-#'                   probabilities of all possible observations are
-#'                   returned.
-#'@param p           Vector of probabilities for computation of quantiles.
-#'@param n           Number of observations. If \code{length(n) > 1}, the
-#'                   length is taken to be the number required.
-#'@param probs       Vector of probabilities of success of each Bernoulli
-#'                   trial.
-#'@param val_p       Vector of values that each trial produces with probability
-#'                   in \code{probs}.
-#'@param val_q       Vector of values that each trial produces with probability
-#'                   in \code{1 - probs}.
-#'@param method      Character string that specifies the method of computation
-#'                   and must be one of \code{"DivideFFT"}, \code{"Convolve"}, 
-#'                   \code{"Characteristic"}, \code{"Normal"} or
-#'                   \code{"RefinedNormal"} (abbreviations are allowed).
-#'@param wts         Vector of non-negative integer weights for the input
-#'                   probabilities.
-#'@param log,log.p   Logical value indicating if results are given as
-#'                   logarithms.
-#'@param lower.tail  Logical value indicating if results are \eqn{P[X \leq x]}
-#'                   (if \code{TRUE}; default) or \eqn{P[X > x]} (if 
-#'                   \code{FALSE}).
-#'@param generator   Character string that specifies the random number
-#'                   generator and must either be \code{"Sample"} or
-#'                   \code{"Bernoulli"} (abbreviations are allowed).
+#' @param x           Either a vector of observed sums or NULL. If NULL,
+#'                    probabilities of all possible observations are
+#'                    returned.
+#' @param p           Vector of probabilities for computation of quantiles.
+#' @param n           Number of observations. If \code{length(n) > 1}, the
+#'                    length is taken to be the number required.
+#' @param probs       Vector of probabilities of success of each Bernoulli
+#'                    trial.
+#' @param val_p       Vector of values that each trial produces with probability
+#'                    in \code{probs}.
+#' @param val_q       Vector of values that each trial produces with probability
+#'                    in \code{1 - probs}.
+#' @param method      Character string that specifies the method of computation
+#'                    and must be one of \code{"DivideFFT"}, \code{"Convolve"}, 
+#'                    \code{"Characteristic"}, \code{"Normal"} or
+#'                    \code{"RefinedNormal"} (abbreviations are allowed).
+#' @param wts         Vector of non-negative integer weights for the input
+#'                    probabilities.
+#' @param log,log.p   Logical value indicating if results are given as
+#'                    logarithms.
+#' @param lower.tail  Logical value indicating if results are \eqn{P[X \leq x]}
+#'                    (if \code{TRUE}; default) or \eqn{P[X > x]} (if 
+#'                    \code{FALSE}).
+#' @param generator   Character string that specifies the random number
+#'                    generator and must either be \code{"Sample"} or
+#'                    \code{"Bernoulli"} (abbreviations are allowed).
 #'
-#'@details
-#'See the references for computational details. The \emph{Divide and Conquer}
-#'(\code{"DivideFFT"}) and \emph{Direct Convolution} (\code{"Convolve"})
-#'algorithms are derived and described in Biscarri, Zhao & Brunner (2018). They
-#'have been modified for use with the generalized Poisson binomial
-#'distribution. The
-#'\emph{Discrete Fourier Transformation of the Characteristic Function}
-#'(\code{"Characteristic"}) is derived in Zhang, Hong & Balakrishnan (2018),
-#'the \emph{Normal Approach} (\code{"Normal"}) and the
-#'\emph{Refined Normal Approach} (\code{"RefinedNormal"}) are described in Hong
-#'(2013). They were slightly adapted for the generalized Poisson binomial
-#'distribution.
+#' @details
+#' See the references for computational details. The \emph{Divide and Conquer}
+#' (\code{"DivideFFT"}) and \emph{Direct Convolution} (\code{"Convolve"})
+#' algorithms are derived and described in Biscarri, Zhao & Brunner (2018). They
+#' have been modified for use with the generalised Poisson binomial
+#' distribution. The
+#' \emph{Discrete Fourier Transformation of the Characteristic Function}
+#' (\code{"Characteristic"}) is derived in Zhang, Hong & Balakrishnan (2018),
+#' the \emph{Normal Approach} (\code{"Normal"}) and the
+#' \emph{Refined Normal Approach} (\code{"RefinedNormal"}) are described in Hong
+#' (2013). They were slightly adapted for the generalised Poisson binomial
+#' distribution.
 #'
-#'In some special cases regarding the values of \code{probs}, the \code{method}
-#'parameter is ignored (see Introduction vignette).
+#' In some special cases regarding the values of \code{probs}, the \code{method}
+#' parameter is ignored (see Introduction vignette).
 #'
-#'Random numbers can be generated in two ways. The \code{"Sample"} method
-#'uses \code{R}'s \code{sample} function to draw random values according to
-#'their probabilities that are calculated by \code{dgpbinom}. The
-#'\code{"Bernoulli"} procedure ignores the \code{method} parameter and
-#'simulates Bernoulli-distributed random numbers according to the probabilities
-#'in \code{probs} and sums them up. It is a bit slower than the \code{"Sample"}
-#'generator, but may yield better results, as it allows to obtain observations
-#'that cannot be generated by the \code{"Sample"} procedure, because
-#'\code{dgpbinom} may compute 0-probabilities, due to rounding, if the length
-#'of \code{probs} is large and/or its values contain a lot of very small
-#'values.
+#' Random numbers can be generated in two ways. The \code{"Sample"} method
+#' uses \code{R}'s \code{sample} function to draw random values according to
+#' their probabilities that are calculated by \code{dgpbinom}. The
+#' \code{"Bernoulli"} procedure ignores the \code{method} parameter and
+#' simulates Bernoulli-distributed random numbers according to the probabilities
+#' in \code{probs} and sums them up. It is a bit slower than the \code{"Sample"}
+#' generator, but may yield better results, as it allows to obtain observations
+#' that cannot be generated by the \code{"Sample"} procedure, because
+#' \code{dgpbinom} may compute 0-probabilities, due to rounding, if the length
+#' of \code{probs} is large and/or its values contain a lot of very small
+#' values.
 #'
-#'@return
-#'\code{dgpbinom} gives the density, \code{pgpbinom} computes the distribution
-#'function, \code{qgpbinom} gives the quantile function and \code{rgpbinom}
-#'generates random deviates.
+#' @return
+#' \code{dgpbinom} gives the density, \code{pgpbinom} computes the distribution
+#' function, \code{qgpbinom} gives the quantile function and \code{rgpbinom}
+#' generates random deviates.
 #'
-#'For \code{rgpbinom}, the length of the result is determined by \code{n}, and
-#'is the lengths of the numerical arguments for the other functions.
+#' For \code{rgpbinom}, the length of the result is determined by \code{n}, and
+#' is the lengths of the numerical arguments for the other functions.
 #'
-#'@section References:
-#'Hong, Y. (2018). On computing the distribution function for the Poisson
-#'    binomial distribution. \emph{Computational Statistics & Data Analysis},
-#'    \strong{59}, pp. 41-51. \doi{10.1016/j.csda.2012.10.006}
+#' @references
+#' Hong, Y. (2018). On computing the distribution function for the Poisson
+#'  binomial distribution. \emph{Computational Statistics & Data Analysis},
+#'  \strong{59}, pp. 41-51. \doi{10.1016/j.csda.2012.10.006}
 #'
-#'Biscarri, W., Zhao, S. D. and Brunner, R. J. (2018) A simple and fast method
-#'    for computing the Poisson binomial distribution.
-#'    \emph{Computational Statistics and Data Analysis}, \strong{31}, pp.
-#'    216–222. \doi{10.1016/j.csda.2018.01.007}
+#' Biscarri, W., Zhao, S. D. and Brunner, R. J. (2018) A simple and fast method
+#'   for computing the Poisson binomial distribution.
+#'   \emph{Computational Statistics and Data Analysis}, \strong{31}, pp.
+#'   216–222. \doi{10.1016/j.csda.2018.01.007}
 #'    
-#'Zhang, M., Hong, Y. and Balakrishnan, N. (2018). The generalized 
-#'    Poisson-binomial distribution and the computation of its distribution
-#'    function. \emph{Journal of Statistical Computational and Simulation},
-#'    \strong{88}(8), pp. 1515-1527. \doi{10.1080/00949655.2018.1440294}
+#' Zhang, M., Hong, Y. and Balakrishnan, N. (2018). The generalized 
+#'   Poisson-binomial distribution and the computation of its distribution
+#'   function. \emph{Journal of Statistical Computational and Simulation},
+#'   \strong{88}(8), pp. 1515-1527. \doi{10.1080/00949655.2018.1440294}
 #'    
-#'@examples
-#'set.seed(1)
-#'pp <- c(1, 0, runif(10), 1, 0, 1)
-#'qq <- seq(0, 1, 0.01)
-#'va <- rep(5, length(pp))
-#'vb <- 1:length(pp)
+#' @examples
+#' set.seed(1)
+#' pp <- c(1, 0, runif(10), 1, 0, 1)
+#' qq <- seq(0, 1, 0.01)
+#' va <- rep(5, length(pp))
+#' vb <- 1:length(pp)
 #'
-#'dgpbinom(NULL, pp, va, vb, method = "DivideFFT")
-#'pgpbinom(75:100, pp, va, vb, method = "DivideFFT")
-#'qgpbinom(qq, pp, va, vb, method = "DivideFFT")
-#'rgpbinom(100, pp, va, vb, method = "DivideFFT")
+#' dgpbinom(NULL, pp, va, vb, method = "DivideFFT")
+#' pgpbinom(75:100, pp, va, vb, method = "DivideFFT")
+#' qgpbinom(qq, pp, va, vb, method = "DivideFFT")
+#' rgpbinom(100, pp, va, vb, method = "DivideFFT")
+#' 
+#' dgpbinom(NULL, pp, va, vb, method = "Convolve")
+#' pgpbinom(75:100, pp, va, vb, method = "Convolve")
+#' qgpbinom(qq, pp, va, vb, method = "Convolve")
+#' rgpbinom(100, pp, va, vb, method = "Convolve")
+#' 
+#' dgpbinom(NULL, pp, va, vb, method = "Characteristic")
+#' pgpbinom(75:100, pp, va, vb, method = "Characteristic")
+#' qgpbinom(qq, pp, va, vb, method = "Characteristic")
+#' rgpbinom(100, pp, va, vb, method = "Characteristic")
 #'
-#'dgpbinom(NULL, pp, va, vb, method = "Convolve")
-#'pgpbinom(75:100, pp, va, vb, method = "Convolve")
-#'qgpbinom(qq, pp, va, vb, method = "Convolve")
-#'rgpbinom(100, pp, va, vb, method = "Convolve")
-#'
-#'dgpbinom(NULL, pp, va, vb, method = "Characteristic")
-#'pgpbinom(75:100, pp, va, vb, method = "Characteristic")
-#'qgpbinom(qq, pp, va, vb, method = "Characteristic")
-#'rgpbinom(100, pp, va, vb, method = "Characteristic")
-#'
-#'dgpbinom(NULL, pp, va, vb, method = "Normal")
-#'pgpbinom(75:100, pp, va, vb, method = "Normal")
-#'qgpbinom(qq, pp, va, vb, method = "Normal")
-#'rgpbinom(100, pp, va, vb, method = "Normal")
-#'
-#'dgpbinom(NULL, pp, va, vb, method = "RefinedNormal")
-#'pgpbinom(75:100, pp, va, vb, method = "RefinedNormal")
-#'qgpbinom(qq, pp, va, vb, method = "RefinedNormal")
-#'rgpbinom(100, pp, va, vb, method = "RefinedNormal")
-#'
-#'@export
+#' dgpbinom(NULL, pp, va, vb, method = "Normal")
+#' pgpbinom(75:100, pp, va, vb, method = "Normal")
+#' qgpbinom(qq, pp, va, vb, method = "Normal")
+#' rgpbinom(100, pp, va, vb, method = "Normal")
+#' 
+#' dgpbinom(NULL, pp, va, vb, method = "RefinedNormal")
+#' pgpbinom(75:100, pp, va, vb, method = "RefinedNormal")
+#' qgpbinom(qq, pp, va, vb, method = "RefinedNormal")
+#' rgpbinom(100, pp, va, vb, method = "RefinedNormal")
+#' 
+#' @export
 dgpbinom <- function(
   x,
   probs,
@@ -196,8 +196,8 @@ dgpbinom <- function(
   return(d)
 }
 
-#'@rdname GenPoissonBinomial-Distribution
-#'@export
+#' @rdname GenPoissonBinomial-Distribution
+#' @export
 pgpbinom <- function(
   x,
   probs,
@@ -285,9 +285,9 @@ pgpbinom <- function(
   return(d)
 }
 
-#'@rdname GenPoissonBinomial-Distribution
-#'@importFrom stats stepfun
-#'@export
+#' @rdname GenPoissonBinomial-Distribution
+#' @importFrom stats stepfun
+#' @export
 qgpbinom <- function(
   p,
   probs,
@@ -356,9 +356,9 @@ qgpbinom <- function(
   return(res)
 }
 
-#'@rdname GenPoissonBinomial-Distribution
-#'@importFrom stats runif rbinom
-#'@export
+#' @rdname GenPoissonBinomial-Distribution
+#' @importFrom stats runif rbinom
+#' @export
 rgpbinom <- function(
   n,
   probs,
