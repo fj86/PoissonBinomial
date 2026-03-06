@@ -6,7 +6,7 @@
 
 # PoissonBinomial 1.2.7
 
-* Updated `Makevars` file, because it contained hardcoded paths which could
+* Updated `Makevars` file, because it contained hard-coded paths which could
   cause problems on some exotic configurations, e.g. MacPorts
 * Minor performance improvement for DFT-CF procedure
 * Documentation updates
@@ -16,7 +16,7 @@
 
 * Addresses `[-Wformat-security]` compiler warning on newer clang configuration.
   See https://github.com/RcppCore/Rcpp/issues/1287
-* change of maintainer eMail to personal address
+* change of maintainer email to personal address
 * GitHub repo moved to personal account
 
 
@@ -112,7 +112,7 @@
 * Bug fix of DFT-CF method ("Characteristic") so that negative probabilities
   are no longer possible.
 * Reworked vignette structure.
-* Added author acknowledgments to the Makevars.win file (original author was
+* Added author acknowledgements to the Makevars.win file (original author was
   Geoff99 (https://github.com/Geoff99)).
   
 
