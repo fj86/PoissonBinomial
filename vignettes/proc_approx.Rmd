@@ -251,7 +251,7 @@ summary((dpn - dpd)[idx])
 
 ### Processing Speed Comparisons
 
-To assess the performance of the approximation procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Windows 10 Education (22H2).
+To assess the performance of the approximation procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Manjaro KDE Linux (26.0.2).
 
 ```{r benchmark-ord}
 library(microbenchmark)
@@ -370,7 +370,7 @@ summary((dpn - dpd)[idx])
 
 ### Processing Speed Comparisons
 
-To assess the performance of the approximation procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Windows 10 Education (22H2).
+To assess the performance of the approximation procedures, we use the `microbenchmark` package. Each algorithm has to calculate the PMF repeatedly based on random probability vectors. The run times are then summarized in a table that presents, among other statistics, their minima, maxima and means. The following results were recorded on an AMD Ryzen 9 5900X with 64 GiB of RAM and Manjaro KDE Linux (26.0.2).
 
 ```{r benchmark-gen}
 library(microbenchmark)

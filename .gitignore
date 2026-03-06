@@ -1,9 +1,9 @@
 inst/doc
-doc
-Meta
 .Rproj.user
 *.o
 *.so
 *.dll
 .Rhistory
 *.Rhistory
+/doc/
+/Meta/
