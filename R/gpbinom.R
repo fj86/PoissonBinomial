@@ -118,7 +118,15 @@
 #'rgpbinom(100, pp, va, vb, method = "RefinedNormal")
 #'
 #'@export
-dgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", log = FALSE){
+dgpbinom <- function(
+  x,
+  probs,
+  val_p,
+  val_q,
+  wts = NULL,
+  method = "DivideFFT",
+  log = FALSE
+) {
   ## preliminary checks
   method <- check.args.GPB(x, probs, val_p, val_q, wts, method)
   
@@ -136,39 +144,46 @@ dgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   d <- double(length(x))
   
   # no computation needed, if there are no valid observations in 'x'
-  if(length(idx.valid)){
+  if(length(idx.valid)) {
     # select valid observations in relevant range
     y <- x[idx.valid]
     
     # relevant observations
     idx.inner <- which(y %in% transf$inner.range)
     
-    # if no input value is in relevant range, they are impossible (i.e. return 0-probabilities)
-    if(length(idx.inner)){
+    # if input values are not in relevant range, they are impossible (i.e.
+    #  return 0-probabilities)
+    if(length(idx.inner)) {
       # transformed input parameters
       n <- transf$n
       probs <- transf$probs
       diffs <- transf$diffs
       
-      if(n == 0){
-        # 'probs' contains only zeros and ones, i.e. only one possible observation
+      if(n == 0) {
+        # 'probs' contains only zeros and ones => only one possible observation
         d[idx.valid][idx.inner] <- 1
-      }else{
+      } else {
         z <- y[idx.inner] - transf$inner.range[1]
         # compute distribution
-        if(all(diffs == diffs[1])){
-          # all values of 'diffs' are equal, i.e. a multiplied ordinary poisson binomial distribution
+        if(all(diffs == diffs[1])) {
+          # all values of 'diffs' are equal => scaled ordinary PBD
           remainder <- z %% diffs[1]
           idx.r <- which(remainder == 0)
-          d[idx.valid][idx.inner][idx.r] <- dpbinom((z %/% diffs[1])[idx.r], probs, method = method)
-        }else{
+          d[idx.valid][idx.inner][idx.r] <- dpbinom(
+            x = (z %/% diffs[1])[idx.r], 
+            probs = probs,
+            method = method
+          )
+        } else {
           # compute distribution according to 'method'
-          d[idx.valid][idx.inner] <- switch(method,
-                                            DivideFFT = dgpb_dc(z, probs, diffs, rep(0, n)),
-                                            Convolve = dgpb_conv(z, probs, diffs, rep(0, n)),
-                                            Characteristic = dgpb_dftcf(z, probs, diffs, rep(0, n)),
-                                            Normal = dgpb_na(z, probs, diffs, rep(0, n), FALSE),
-                                            RefinedNormal = dgpb_na(z, probs, diffs, rep(0, n), TRUE))
+          d[idx.valid][idx.inner] <- switch(
+            EXPR = method,
+            DivideFFT = dgpb_dc(z, probs, diffs, rep(0, n)),
+            Convolve = dgpb_conv(z, probs, diffs, rep(0, n)),
+            Characteristic = dgpb_dftcf(z, probs, diffs, rep(0, n)),
+            Normal = dgpb_na(z, probs, diffs, rep(0, n), FALSE),
+            RefinedNormal = dgpb_na(z, probs, diffs, rep(0, n), TRUE)
+          )
         }
       }
     }
@@ -183,7 +198,16 @@ dgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
 
 #'@rdname GenPoissonBinomial-Distribution
 #'@export
-pgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", lower.tail = TRUE, log.p = FALSE){
+pgpbinom <- function(
+  x,
+  probs,
+  val_p,
+  val_q,
+  wts = NULL,
+  method = "DivideFFT",
+  lower.tail = TRUE,
+  log.p = FALSE
+) {
   ## preliminary checks
   method <- check.args.GPB(x, probs, val_p, val_q, wts, method)
   
@@ -201,43 +225,52 @@ pgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   d <- rep(as.numeric(!lower.tail), length(x))
   
   # no computation needed, if there are no valid observations in 'x'
-  if(length(idx.valid)){
+  if(length(idx.valid)) {
     # select valid observations in relevant range
     y <- x[idx.valid]
     
     # relevant observations
     idx.inner <- which(y %in% transf$inner.range)
     
-    if(length(idx.inner)){
+    if(length(idx.inner)) {
       # transformed input parameters
       n <- transf$n
       probs <- transf$probs
       diffs <- transf$diffs
       
-      if(n == 0){
-        # 'probs' contains only zeros and ones, i.e. only one possible observation
+      if(n == 0) {
+        # 'probs' contains only zeros and ones => only one possible observation
         d[idx.valid][idx.inner] <- as.numeric(lower.tail)
-      }else{
+      } else {
         # select and rescale relevant observations
         z <- y[idx.inner] - transf$inner.range[1]
         
         # compute distribution
-        if(all(diffs == diffs[1])){
-          # all GCD-optimized values of 'diffs' are equal, i.e. a standard binomial distribution
-          d[idx.valid][idx.inner] <- ppbinom(z %/% diffs[1], probs, method = method, lower.tail = lower.tail)
-        }else{
+        if(all(diffs == diffs[1])) {
+          # all GCD-optimised values are equal => standard binomial distribution
+          d[idx.valid][idx.inner] <- ppbinom(
+            x = z %/% diffs[1],
+            probs = probs,
+            method = method,
+            lower.tail = lower.tail
+          )
+        } else {
           # compute distribution according to 'method'
-          d[idx.valid][idx.inner] <- switch(method,
-                                            DivideFFT = pgpb_dc(z, probs, diffs, rep(0, n), lower.tail),
-                                            Convolve = pgpb_conv(z, probs, diffs, rep(0, n), lower.tail),
-                                            Characteristic = pgpb_dftcf(z, probs, diffs, rep(0, n), lower.tail),
-                                            Normal = pgpb_na(z, probs, diffs, rep(0, n), FALSE, lower.tail),
-                                            RefinedNormal = pgpb_na(z, probs, diffs, rep(0, n), TRUE, lower.tail))
+          d[idx.valid][idx.inner] <- switch(
+            EXPR = method,
+            DivideFFT = pgpb_dc(z, probs, diffs, rep(0, n), lower.tail),
+            Convolve = pgpb_conv(z, probs, diffs, rep(0, n), lower.tail),
+            Characteristic = pgpb_dftcf(z, probs, diffs, rep(0, n), lower.tail),
+            Normal = pgpb_na(z, probs, diffs, rep(0, n), FALSE, lower.tail),
+            RefinedNormal = pgpb_na(z, probs, diffs, rep(0, n), TRUE, lower.tail)
+          )
         }
       }
     }
+    
     # which valid observations are above relevant range
     idx.above <- which(y > max(transf$inner.range))
+    
     # fill cumulative probabilities of values above the relevant range
     if(length(idx.above)) d[idx.valid][idx.above] <- as.double(lower.tail)
   }
@@ -255,31 +288,40 @@ pgpbinom <- function(x, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
 #'@rdname GenPoissonBinomial-Distribution
 #'@importFrom stats stepfun
 #'@export
-qgpbinom <- function(p, probs, val_p, val_q, wts = NULL, method = "DivideFFT", lower.tail = TRUE, log.p = FALSE){
+qgpbinom <- function(
+  p,
+  probs,
+  val_p,
+  val_q,
+  wts = NULL,
+  method = "DivideFFT",
+  lower.tail = TRUE,
+  log.p = FALSE
+) {
   ## preliminary checks
   method <- check.args.GPB(NULL, probs, val_p, val_q, wts, method)
   
   # check if 'q' contains only probabilities
-  if(!log.p){
+  if(!log.p) {
     if(is.null(p) || any(is.na(p) | p < 0 | p > 1))
       stop("'p' must contain real numbers between 0 and 1!")
-  }else{
+  } else {
     if(is.null(p) || any(is.na(p) | p > 0))
       stop("'p' must contain real numbers between -Inf and 0!")
   }
   
   ## transform input to relevant range
   transf <- transformGPB(NULL, probs, val_p, val_q, wts)
-  probs <- transf$probs
-  val_p <- transf$val_p
-  val_q <- transf$val_q
+  probs  <- transf$probs
+  val_p  <- transf$val_p
+  val_q  <- transf$val_q
   
   ## compute probabilities (does checking for the other variables)
   cdf <- pgpbinom(NULL, probs, val_p, val_q, NULL, method, lower.tail)
   
   # bounds of relevant observations
   first <- min(transf$inner.range)
-  last <- max(transf$inner.range)
+  last  <- max(transf$inner.range)
   
   # length of cdf
   len <- length(cdf)
@@ -289,8 +331,19 @@ qgpbinom <- function(p, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
   
   ## compute quantiles
   # handle quantiles between 0 and 1
-  if(lower.tail) Q <- stepfun(cdf[transf$inner.range - first + 1], c(transf$inner.range, last), right = TRUE)
-  else Q <- stepfun(rev(cdf[transf$inner.range - first + 1]), c(last, rev(transf$inner.range)), right = TRUE)
+  Q <- if(lower.tail) {
+    stepfun(
+      x = cdf[transf$inner.range - first + 1],
+      y = c(transf$inner.range, last),
+      right = TRUE
+    )
+  } else {
+    stepfun(
+      x = rev(cdf[transf$inner.range - first + 1]),
+      y = c(last, rev(transf$inner.range)),
+      right = TRUE
+    )
+  }
   
   # vector to store results
   res <- Q(p)
@@ -306,7 +359,15 @@ qgpbinom <- function(p, probs, val_p, val_q, wts = NULL, method = "DivideFFT", l
 #'@rdname GenPoissonBinomial-Distribution
 #'@importFrom stats runif rbinom
 #'@export
-rgpbinom <- function(n, probs, val_p, val_q, wts = NULL, method = "DivideFFT", generator = "Sample"){
+rgpbinom <- function(
+  n,
+  probs,
+  val_p,
+  val_q,
+  wts = NULL,
+  method = "DivideFFT",
+  generator = "Sample"
+) {
   ## preliminary checks
   method <- check.args.GPB(NULL, probs, val_p, val_q, wts, method)
   
@@ -318,8 +379,7 @@ rgpbinom <- function(n, probs, val_p, val_q, wts = NULL, method = "DivideFFT", g
   
   ## expand 'probs', 'val_p' and 'val_q' according to the counts in 'wts'
   # if 'wts' is NULL, set it to be a vector of ones
-  if(is.null(wts))
-    wts <- rep(1, length(probs))
+  if(is.null(wts)) wts <- rep(1, length(probs))
   
   # expand 'probs', 'val_p', 'val_q'
   probs <- rep(probs, wts)
@@ -330,8 +390,16 @@ rgpbinom <- function(n, probs, val_p, val_q, wts = NULL, method = "DivideFFT", g
   generator <- match.arg(generator, c("Sample", "Bernoulli"))
   
   # generate random numbers
-  res <- switch(generator, Sample    = sample(sum(pmin(val_p, val_q)):sum(pmax(val_p, val_q)), n, TRUE, dgpbinom(NULL, probs, val_p, val_q, NULL, method)),
-                           Bernoulli = rgpb_bernoulli(n, probs, val_p, val_q))
+  res <- switch(
+    EXPR = generator,
+    Sample = sample(
+      x = sum(pmin(val_p, val_q)):sum(pmax(val_p, val_q)),
+      size = n,
+      replace = TRUE,
+      prob = dgpbinom(NULL, probs, val_p, val_q, NULL, method)
+    ),
+    Bernoulli = rgpb_bernoulli(n, probs, val_p, val_q)
+  )
   
   # return results
   return(res)

@@ -142,13 +142,13 @@
 #'rpbinom(100, pp, method = "RefinedNormal")
 #'
 #'@export
-dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
+dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE) {
   ## preliminary checks
   # number of probabilities
   n <- length(probs)
   
   # check if 'x' contains only integers
-  if(!is.null(x) && any(x - round(x) != 0)){
+  if(!is.null(x) && any(x - round(x) != 0)) {
     warning("'x' should contain integers only! Using rounded off values.")
     x <- floor(x)
   }
@@ -157,8 +157,14 @@ dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
   if(is.null(probs) || any(is.na(probs) | probs < 0 | probs > 1))
     stop("'probs' must contain real numbers between 0 and 1!")
   
-  # make sure that the value of 'method' matches one of the implemented procedures
-  method <- match.arg(method, c("DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean", "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"))
+  # make sure that the value of 'method' matches an implemented procedure
+  method <- match.arg(
+    arg = method, 
+    choices = c(
+      "DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean",
+      "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"
+    )
+  )
   
   # check if 'wts' contains only integers (zeros are allowed)
   if(!is.null(wts) && any(is.na(wts) | wts < 0 | abs(wts - round(wts)) > 1e-07))
@@ -169,8 +175,7 @@ dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
   
   ## expand 'probs' according to the counts in 'wts'
   # if 'wts' is NULL, set it to be a vector of ones
-  if(is.null(wts))
-    wts <- rep(1, n)
+  if(is.null(wts)) wts <- rep(1, n)
   
   # expand 'probs'
   probs <- rep(probs, wts)
@@ -192,10 +197,10 @@ dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
   d <- double(length(x))
   
   # no computation needed, if there are no valid observations in 'x'
-  if(length(idx.x)){
+  if(length(idx.x)) {
     # which probabilities are 0 or 1
-    idx0 <- which(probs == 0)
-    idx1 <- which(probs == 1)
+    idx0  <- which(probs == 0)
+    idx1  <- which(probs == 1)
     probs <- probs[probs > 0 & probs < 1]
     
     # number of zeros and ones
@@ -206,31 +211,36 @@ dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
     # relevant observations
     idx.y <- which(y %in% n1:(n - n0))
     
-    if(length(idx.y)){
+    if(length(idx.y)) {
       z <- y[idx.y] - n1
     
-      if(np == 0){
-        # 'probs' contains only zeros and ones, i.e. only one possible observation
+      if(np == 0) {
+        # 'probs' contains only zeros and ones => only one possible observation
         d[idx.x][idx.y] <- 1
-      }else if(np == 1){
-        # 'probs' contains only one value that is not 0 or 1, i.e. a Bernoulli distribution
-        d[idx.x][idx.y] <- c(1 - probs, probs)[z + 1]
-      }else{
-        if(all(probs == probs[1])){
-          # all values of 'probs' are equal, i.e. a standard binomial distribution
-          d[idx.x][idx.y] <- dbinom(z, np, probs[1])
-        }else{
-          # otherwise, compute distribution according to 'method'
-          d[idx.x][idx.y] <- switch(method, DivideFFT = dpb_dc(z, probs),
-                                            Convolve = dpb_conv(z, probs),
-                                            Characteristic = dpb_dftcf(z, probs),
-                                            Recursive = dpb_rf(z, probs),
-                                            Mean = dpb_mean(z, probs),
-                                            GeoMean = dpb_gmba(z, probs, FALSE),
-                                            GeoMeanCounter = dpb_gmba(z, probs, TRUE),
-                                            Poisson = dpb_pa(z, probs),
-                                            Normal = dpb_na(z, probs, FALSE),
-                                            RefinedNormal = dpb_na(z, probs, TRUE))
+      } else {
+        if(np == 1) {
+          # 'probs' contains only one value in (0, 1) => Bernoulli distribution
+          d[idx.x][idx.y] <- c(1 - probs, probs)[z + 1]
+        } else {
+          if(all(probs == probs[1])) {
+            # all values of 'probs' are equal => standard binomial distribution
+            d[idx.x][idx.y] <- dbinom(z, np, probs[1])
+          } else {
+            # otherwise, compute distribution according to 'method'
+            d[idx.x][idx.y] <- switch(
+              EXPR = method,
+              DivideFFT = dpb_dc(z, probs),
+              Convolve = dpb_conv(z, probs),
+              Characteristic = dpb_dftcf(z, probs),
+              Recursive = dpb_rf(z, probs),
+              Mean = dpb_mean(z, probs),
+              GeoMean = dpb_gmba(z, probs, FALSE),
+              GeoMeanCounter = dpb_gmba(z, probs, TRUE),
+              Poisson = dpb_pa(z, probs),
+              Normal = dpb_na(z, probs, FALSE),
+              RefinedNormal = dpb_na(z, probs, TRUE)
+            )
+          }
         }
       }
     }
@@ -245,13 +255,20 @@ dpbinom <- function(x, probs, wts = NULL, method = "DivideFFT", log = FALSE){
 
 #'@rdname PoissonBinomial-Distribution
 #'@export
-ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRUE, log.p = FALSE){
+ppbinom <- function(
+  x,
+  probs,
+  wts = NULL,
+  method = "DivideFFT",
+  lower.tail = TRUE,
+  log.p = FALSE
+) {
   ## preliminary checks
   # number of probabilities
   n <- length(probs)
   
   # check if 'x' contains only integers
-  if(!is.null(x) && any(x - round(x) != 0)){
+  if(!is.null(x) && any(x - round(x) != 0)) {
     warning("'x' should contain integers only! Using rounded off values.")
     x <- floor(x)
   }
@@ -260,8 +277,14 @@ ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
   if(is.null(probs) || any(is.na(probs) | probs < 0 | probs > 1))
     stop("'probs' must contain real numbers between 0 and 1!")
   
-  # make sure that the value of 'method' matches one of the implemented procedures
-  method <- match.arg(method, c("DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean", "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"))
+  # make sure that the value of 'method' matches an implemented procedure
+  method <- match.arg(
+    arg = method, 
+    choices = c(
+      "DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean",
+      "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"
+    )
+  )
   
   # check if 'wts' contains only integers (zeros are allowed)
   if(!is.null(wts) && any(is.na(wts) | wts < 0 | abs(wts - round(wts)) > 1e-07))
@@ -272,8 +295,7 @@ ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
   
   ## expand 'probs' according to the counts in 'wts'
   # if 'wts' is NULL, set it to be a vector of ones
-  if(is.null(wts))
-    wts <- rep(1, n)
+  if(is.null(wts)) wts <- rep(1, n)
   
   # expand 'probs'
   probs <- rep(probs, wts)
@@ -295,10 +317,10 @@ ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
   d <- rep(as.numeric(!lower.tail), length(x))
   
   # no computation needed, if there are no valid observations in 'x'
-  if(length(idx.x)){
+  if(length(idx.x)) {
     # which probabilities are 0 or 1
-    idx0 <- which(probs == 0)
-    idx1 <- which(probs == 1)
+    idx0  <- which(probs == 0)
+    idx1  <- which(probs == 1)
     probs <- probs[probs > 0 & probs < 1]
     
     # number of zeros and ones
@@ -310,35 +332,42 @@ ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
     idx.y <- which(y %in% n1:(n - n0))
     idx.z <- which(y > n - n0)
     
-    if(length(idx.y)){
+    if(length(idx.y)) {
       z <- y[idx.y] - n1
       
-      if(np == 0){
-        # 'probs' contains only zeros and ones, i.e. there is only one possible observation
+      if(np == 0) {
+        # 'probs' contains only zeros and ones => only one possible observation
         d[idx.x][idx.y] <- if(lower.tail) 1 else 0
-      }else if(np == 1){
-        # 'probs' contains only one value that is not 0 or 1, i.e. a Bernoulli distribution
-        d[idx.x][idx.y] <- if(lower.tail) c(1 - probs, 1)[z + 1] else c(probs, 0)[z + 1]
-      }else{
-        if(all(probs == probs[1])){
-          # all values of 'probs' are equal, i.e. a standard binomial distribution
-          d[idx.x][idx.y] <- pbinom(q = z, size = np, prob = probs[1], lower.tail = lower.tail)
-        }else{
-          # otherwise, compute distribution according to 'method'
-          d[idx.x][idx.y] <- switch(method,
-                                    DivideFFT = ppb_dc(z, probs, lower.tail),
-                                    Convolve = ppb_conv(z, probs, lower.tail),
-                                    Characteristic = ppb_dftcf(z, probs, lower.tail),
-                                    Recursive = ppb_rf(z, probs, lower.tail),
-                                    Mean = ppb_mean(z, probs, lower.tail),
-                                    GeoMean = ppb_gmba(z, probs, FALSE, lower.tail),
-                                    GeoMeanCounter = ppb_gmba(z, probs, TRUE, lower.tail),
-                                    Poisson = ppb_pa(z, probs, lower.tail),
-                                    Normal = ppb_na(z, probs, FALSE, lower.tail),
-                                    RefinedNormal = ppb_na(z, probs, TRUE, lower.tail))
-          
-          # compute counter-probabilities, if necessary
-          #if(!lower.tail) d[idx.x][idx.y] <- 1 - d[idx.x][idx.y]
+      } else {
+        if(np == 1) {
+          # 'probs' contains only one value in (0, 1) => Bernoulli distribution
+          d[idx.x][idx.y] <- if(lower.tail) 
+            c(1 - probs, 1)[z + 1] else c(probs, 0)[z + 1]
+        } else {
+          if(all(probs == probs[1])) {
+            # all values of 'probs' are equal => standard binomial distribution
+            d[idx.x][idx.y] <- pbinom(
+              q = z,
+              size = np,
+              prob = probs[1],
+              lower.tail = lower.tail
+            )
+          } else {
+            # otherwise, compute distribution according to 'method'
+            d[idx.x][idx.y] <- switch(
+              EXPR = method,
+              DivideFFT = ppb_dc(z, probs, lower.tail),
+              Convolve = ppb_conv(z, probs, lower.tail),
+              Characteristic = ppb_dftcf(z, probs, lower.tail),
+              Recursive = ppb_rf(z, probs, lower.tail),
+              Mean = ppb_mean(z, probs, lower.tail),
+              GeoMean = ppb_gmba(z, probs, FALSE, lower.tail),
+              GeoMeanCounter = ppb_gmba(z, probs, TRUE, lower.tail),
+              Poisson = ppb_pa(z, probs, lower.tail),
+              Normal = ppb_na(z, probs, FALSE, lower.tail),
+              RefinedNormal = ppb_na(z, probs, TRUE, lower.tail)
+            )
+          }
         }
       }
     }
@@ -358,28 +387,38 @@ ppbinom <- function(x, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
 #'@rdname PoissonBinomial-Distribution
 #'@importFrom stats stepfun
 #'@export
-qpbinom <- function(p, probs, wts = NULL, method = "DivideFFT", lower.tail = TRUE, log.p = FALSE){
+qpbinom <- function(
+  p,
+  probs,
+  wts = NULL,
+  method = "DivideFFT",
+  lower.tail = TRUE,
+  log.p = FALSE
+) {
   ## preliminary checks
   # check if 'p' contains only probabilities
-  if(!log.p){
+  if(!log.p) {
     if(is.null(p) || any(is.na(p) | p < 0 | p > 1))
       stop("'p' must contain real numbers between 0 and 1!")
-  }else{
+  } else {
     if(is.null(p) || any(is.na(p) | p > 0))
       stop("'p' must contain real numbers between -Inf and 0!")
   }
   
-  # make sure that the value of 'method' matches one of the implemented procedures
-  method <- match.arg(method, c("DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean", "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"))
+  # make sure that the value of 'method' matches an implemented procedure
+  method <- match.arg(
+    arg = method, 
+    choices = c(
+      "DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean",
+      "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"
+    )
+  )
   
   ## compute probabilities (does checking for the other variables)
   cdf <- ppbinom(NULL, probs, wts, method, lower.tail)
   
   # size of distribution
   size <- length(probs)
-  
-  # length of cdf
-  #len <- length(cdf)
   
   # logarithm, if required
   if(log.p) p <- exp(p)
@@ -390,11 +429,11 @@ qpbinom <- function(p, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
   n1 <- sum(probs == 1)
   hi <- size - n0
   range <- n1:hi
-  #idx <- range + 1
   
   # handle quantiles between 0 and 1
-  if(lower.tail) Q <- stepfun(cdf[range + 1], c(range, hi), right = TRUE)
-  else Q <- stepfun(rev(cdf[range + 1]), c(hi, rev(range)), right = TRUE)
+  Q <- if(lower.tail) 
+    stepfun(cdf[range + 1], c(range, hi), right = TRUE) else 
+      stepfun(rev(cdf[range + 1]), c(hi, rev(range)), right = TRUE)
   
   # vector to store results
   res <- Q(p)
@@ -410,7 +449,13 @@ qpbinom <- function(p, probs, wts = NULL, method = "DivideFFT", lower.tail = TRU
 #'@rdname PoissonBinomial-Distribution
 #'@importFrom stats runif rbinom
 #'@export
-rpbinom <- function(n, probs, wts = NULL, method = "DivideFFT", generator = "Sample"){
+rpbinom <- function(
+  n,
+  probs,
+  wts = NULL,
+  method = "DivideFFT",
+  generator = "Sample"
+) {
   len <- length(n)
   if(len > 1) n <- len
   
@@ -433,21 +478,34 @@ rpbinom <- function(n, probs, wts = NULL, method = "DivideFFT", generator = "Sam
   
   ## expand 'probs' according to the counts in 'wts'
   # if 'wts' is NULL, set it to be a vector of ones
-  if(is.null(wts))
-    wts <- rep(1, len)
+  if(is.null(wts)) wts <- rep(1, len)
   
   # expand 'probs'
   probs <- rep(probs, wts)
   
-  # make sure that the value of 'method' matches one of the implemented procedures
-  method <- match.arg(method, c("DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean", "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"))
+  # make sure that the value of 'method' matches an implemented procedure
+  method <- match.arg(
+    arg = method, 
+    choices = c(
+      "DivideFFT", "Convolve", "Characteristic", "Recursive", "Mean",
+      "GeoMean", "GeoMeanCounter", "Poisson", "Normal", "RefinedNormal"
+    )
+  )
   
-  # make sure that the value of 'generator' matches one of the implemented procedures
+  # make sure that the value of 'generator' matches an implemented procedure
   generator <- match.arg(generator, c("Sample", "Bernoulli"))
   
   # generate random numbers
-  res <- switch(generator, Sample    = sample(0:length(probs), n, TRUE, dpbinom(NULL, probs, NULL, method)),
-                           Bernoulli = rpb_bernoulli(n, probs))
+  res <- switch(
+    EXPR = generator,
+    Sample = sample(
+      x = 0:length(probs),
+      size = n,
+      replace = TRUE,
+      prob = dpbinom(NULL, probs, NULL, method)
+    ),
+    Bernoulli = rpb_bernoulli(n, probs)
+  )
   
   # return results
   return(res)
